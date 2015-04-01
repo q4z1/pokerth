@@ -82,6 +82,11 @@ class Game;
 
 int main( int argc, char **argv )
 {
+	// bbcbot message
+	std::cout << "*********************************\n";
+	std::cout << "*    bbcbot - welcome message   *\n";
+	std::cout << "*********************************\n";
+
 
 	//ENABLE_LEAK_CHECK();
 
