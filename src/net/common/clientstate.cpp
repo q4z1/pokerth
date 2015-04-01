@@ -676,11 +676,21 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 			if (!playerName.empty())
 				client->GetCallback().SignalNetClientGameChatMsg(playerName, netMessage.chattext());
 		} else if (netMessage.chattype() == ChatMessage::chatTypeLobby) {
+			std::cout << "[001] Lobby Message\n";
 			unsigned playerId = netMessage.playerid();
 			PlayerInfo info;
 			if (client->GetCachedPlayerInfo(playerId, info))
 				client->GetCallback().SignalNetClientLobbyChatMsg(info.playerName, netMessage.chattext());
 		} else if (netMessage.chattype() == ChatMessage::chatTypePrivate) {
+	
+			// start bbcbot code
+			std::cout << "[002] Private Message\n";  		
+			unsigned pid=netMessage.playerid();
+                        PlayerInfo pi1=client->GetPlayerInfo(pid);
+                        std::string pname=pi1.playerName;
+                        client->SendLobbyChatMessage("i got a private message from "+pname); // this can be removed in the future
+			// end bbcbot code                        
+
 			unsigned playerId = netMessage.playerid();
 			PlayerInfo info;
 			if (client->GetCachedPlayerInfo(playerId, info))
@@ -705,6 +715,8 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListNewMessage) {
 		// A new game was created on the server.
 		const GameListNewMessage &netListNew = tmpPacket->GetMsg()->gamelistnewmessage();
+		
+		std::cout << "[003] New Game created\n";
 
 		// Request player info for players if needed.
 		GameInfo tmpInfo;
@@ -739,6 +751,9 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 		client->AddGameInfo(netListNew.gameid(), tmpInfo);
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListUpdateMessage) {
 		// An existing game was updated on the server.
+
+		std::cout << "[004] A Game changed its status\n";
+
 		const GameListUpdateMessage &netListUpdate = tmpPacket->GetMsg()->gamelistupdatemessage();
 		if (netListUpdate.gamemode() == netGameClosed)
 			client->RemoveGameInfo(netListUpdate.gameid());
@@ -746,6 +761,8 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 			client->UpdateGameInfoMode(netListUpdate.gameid(), static_cast<GameMode>(netListUpdate.gamemode()));
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListPlayerJoinedMessage) {
 		const GameListPlayerJoinedMessage &netListJoined = tmpPacket->GetMsg()->gamelistplayerjoinedmessage();
+
+		std::cout << "[005] A Player joined a game\n";
 
 		client->ModifyGameInfoAddPlayer(netListJoined.gameid(), netListJoined.playerid());
 		// Request player info if needed.
@@ -755,6 +772,8 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 		}
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListPlayerLeftMessage) {
 		const GameListPlayerLeftMessage &netListLeft = tmpPacket->GetMsg()->gamelistplayerleftmessage();
+		
+		std::cout << "[006] A player left a game\n";
 
 		client->ModifyGameInfoRemovePlayer(netListLeft.gameid(), netListLeft.playerid());
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListSpectatorJoinedMessage) {
