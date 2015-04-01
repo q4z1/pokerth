@@ -17,6 +17,7 @@ GOAL 3
 
 [possible before goal 2]
 bbcbot should auto-connect on startup and should close after connection or try to reconnect regularly
+prevent disconnect due to inactivity
 [so bbcbot can run 24-7]
 
 GOAL 4
