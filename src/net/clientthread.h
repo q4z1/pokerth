@@ -60,6 +60,19 @@ struct Gsasl;
 
 #define SIZE_PING_BACKLOG		20
 
+// start bbcbot code
+
+struct bbcbotdata
+{
+  bbcbotdata() : creategamestate(0),creatorid(0) {}
+
+  int creategamestate;
+  
+  unsigned creatorid;//playerid
+
+};
+// end bbcbot code
+
 class PingData
 {
 public:
@@ -100,6 +113,8 @@ class ClientThread : public Thread, public boost::enable_shared_from_this<Client
 public:
 	ClientThread(GuiInterface &gui, AvatarManager &avatarManager, Log *myLog);
 	virtual ~ClientThread();
+	
+	bbcbotdata bot; // bbcbot code
 
 	// Set the parameters. Does not do any error checking.
 	// Error checking will be done during connect
