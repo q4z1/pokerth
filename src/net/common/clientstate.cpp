@@ -82,11 +82,56 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
 	std::string pname=pi1.playerName;
 	client->SendLobbyChatMessage("i got a private message from "+pname); // this can be removed in the future
-
+	// TODO: check creategamestate
+	if(netMessage.chattext()=="create")
+	{
+		std::cout << "[101] create command from [id] "<< pid <<"\n";
+		GameData gd1;
+		gd1.gameType=GAME_TYPE_INVITE_ONLY;
+		gd1.maxNumberOfPlayers=6;
+		gd1.startMoney=3000;
+		gd1.firstSmallBlind=15;
+		client->bot.creatorid=pid;
+		client->bot.creategamestate=GS_GOTCOMMAND;
+		client->SendCreateGame(gd1, "Test Game from "+pname, "", false);
+	}
 	return;
 }
 
+void bot_newgame(boost::shared_ptr<ClientThread> client,const GameListNewMessage &netListNew)
+{
+	std::cout << "[003] New Game created\n";
+	unsigned adminpid=netListNew.adminplayerid();
+	if(adminpid==client->GetGuiPlayerId() && client->bot.creategamestate==GS_GOTCOMMAND)
+	{
+		std::cout << "[102] game by bbcbot created\n";
+		client->bot.creategamestate=GS_CREATED;
+		
+		//TODO: invite the creator
+		client->SendInvitePlayerToCurrentGame(client->bot.creatorid);
+		client->bot.creategamestate=GS_SENDINV;
+		std::cout << "[103] send invite to [id] "<< client->bot.creatorid <<"\n";
+	}
+	return;
+}
 
+void bot_gameupdate(boost::shared_ptr<ClientThread> client,const GameListUpdateMessage &netListUpdate)
+{
+	std::cout << "[004] A Game changed its status\n";
+	return;
+}
+
+void bot_playerjoin(boost::shared_ptr<ClientThread> client, const GameListPlayerJoinedMessage &netListJoined)
+{	
+	std::cout << "[005] A Player joined a game\n";
+	return;
+}
+
+void bot_playerleft(boost::shared_ptr<ClientThread> client,const GameListPlayerLeftMessage &netListLeft)
+{
+	std::cout << "[006] A player left a game\n";
+	return;
+}
 
 
 // end bbcbot code (functions for receiving messages)
@@ -735,8 +780,9 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListNewMessage) {
 		// A new game was created on the server.
 		const GameListNewMessage &netListNew = tmpPacket->GetMsg()->gamelistnewmessage();
+		bot_newgame(client,netListNew); // bbcbot code
 		
-		std::cout << "[003] New Game created\n";
+		
 
 		// Request player info for players if needed.
 		GameInfo tmpInfo;
@@ -771,10 +817,10 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 		client->AddGameInfo(netListNew.gameid(), tmpInfo);
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListUpdateMessage) {
 		// An existing game was updated on the server.
-
-		std::cout << "[004] A Game changed its status\n";
-
+		
 		const GameListUpdateMessage &netListUpdate = tmpPacket->GetMsg()->gamelistupdatemessage();
+		bot_gameupdate(client,netListUpdate); //bbcbot code
+		
 		if (netListUpdate.gamemode() == netGameClosed)
 			client->RemoveGameInfo(netListUpdate.gameid());
 		else
@@ -782,8 +828,9 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListPlayerJoinedMessage) {
 		const GameListPlayerJoinedMessage &netListJoined = tmpPacket->GetMsg()->gamelistplayerjoinedmessage();
 
-		std::cout << "[005] A Player joined a game\n";
-
+		
+		bot_playerjoin(client,netListJoined); // bbcbot code
+		
 		client->ModifyGameInfoAddPlayer(netListJoined.gameid(), netListJoined.playerid());
 		// Request player info if needed.
 		PlayerInfo info;
@@ -793,8 +840,10 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListPlayerLeftMessage) {
 		const GameListPlayerLeftMessage &netListLeft = tmpPacket->GetMsg()->gamelistplayerleftmessage();
 		
-		std::cout << "[006] A player left a game\n";
-
+		
+		bot_playerleft(client,netListLeft); // bbcbot code
+		
+		
 		client->ModifyGameInfoRemovePlayer(netListLeft.gameid(), netListLeft.playerid());
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListSpectatorJoinedMessage) {
 		const GameListSpectatorJoinedMessage &netListJoined = tmpPacket->GetMsg()->gamelistspectatorjoinedmessage();

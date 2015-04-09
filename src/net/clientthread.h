@@ -62,10 +62,19 @@ struct Gsasl;
 
 // start bbcbot code
 
+enum bbcbotgamestate
+{
+	GS_NORMAL=0,
+	GS_GOTCOMMAND,
+	GS_CREATED,
+	GS_SENDINV
+}; // forgames created by PM
+
+
 struct bbcbotdata
 {
-	bbcbotdata() : creategamestate(0),creatorid(0) {}
-	int creategamestate;
+	bbcbotdata() : creategamestate(GS_NORMAL),creatorid(0) {}
+	bbcbotgamestate creategamestate;
 	unsigned creatorid;//playerid
 
 };
