@@ -64,11 +64,9 @@ struct Gsasl;
 
 struct bbcbotdata
 {
-  bbcbotdata() : creategamestate(0),creatorid(0) {}
-
-  int creategamestate;
-  
-  unsigned creatorid;//playerid
+	bbcbotdata() : creategamestate(0),creatorid(0) {}
+	int creategamestate;
+	unsigned creatorid;//playerid
 
 };
 // end bbcbot code

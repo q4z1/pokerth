@@ -64,6 +64,33 @@ using namespace boost::filesystem;
 #define CLIENT_CONNECT_TIMEOUT_SEC	10
 
 
+// start bbcbot code (functions for receiving messages)
+
+void bot_lobbymessage(boost::shared_ptr<ClientThread> client,const ChatMessage &netMessage )
+{
+
+	std::cout << "[001] Lobby Message\n";
+
+	return;
+}
+
+void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage &netMessage)
+{
+ 
+	std::cout << "[002] Private Message\n";  		
+	unsigned pid=netMessage.playerid();
+	PlayerInfo pi1=client->GetPlayerInfo(pid);
+	std::string pname=pi1.playerName;
+	client->SendLobbyChatMessage("i got a private message from "+pname); // this can be removed in the future
+
+	return;
+}
+
+
+
+
+// end bbcbot code (functions for receiving messages)
+
 ClientState::~ClientState()
 {
 }
@@ -676,21 +703,14 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 			if (!playerName.empty())
 				client->GetCallback().SignalNetClientGameChatMsg(playerName, netMessage.chattext());
 		} else if (netMessage.chattype() == ChatMessage::chatTypeLobby) {
-			std::cout << "[001] Lobby Message\n";
+			bot_lobbymessage(client,netMessage); // bbcbot code
 			unsigned playerId = netMessage.playerid();
 			PlayerInfo info;
 			if (client->GetCachedPlayerInfo(playerId, info))
 				client->GetCallback().SignalNetClientLobbyChatMsg(info.playerName, netMessage.chattext());
 		} else if (netMessage.chattype() == ChatMessage::chatTypePrivate) {
-	
-			// start bbcbot code
-			std::cout << "[002] Private Message\n";  		
-			unsigned pid=netMessage.playerid();
-                        PlayerInfo pi1=client->GetPlayerInfo(pid);
-                        std::string pname=pi1.playerName;
-                        client->SendLobbyChatMessage("i got a private message from "+pname); // this can be removed in the future
-			// end bbcbot code                        
-
+			
+			bot_privatemessage(client,netMessage); // bbcbot code
 			unsigned playerId = netMessage.playerid();
 			PlayerInfo info;
 			if (client->GetCachedPlayerInfo(playerId, info))
