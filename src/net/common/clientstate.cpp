@@ -53,6 +53,7 @@
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/filesystem.hpp>
 
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -63,13 +64,31 @@ using namespace boost::filesystem;
 #define CLIENT_WAIT_TIMEOUT_MSEC	50
 #define CLIENT_CONNECT_TIMEOUT_SEC	10
 
-
 // start bbcbot code (functions for receiving messages)
+
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
+
+void bottimer_invite(const boost::system::error_code& /*e*/,boost::shared_ptr<ClientThread> client)
+{
+	unsigned playerid=client->bot.creatorid;
+	std::cout << "[106] Timer called for invite\n";
+	std::cout <<"[104] invite debug command from [id="<<playerid;
+	std::cout <<"], [state="<<client->bot.creategamestate<<"]\n";
+	client->SendInvitePlayerToCurrentGame(playerid); 
+	client->bot.creategamestate=GS_SENDINV;
+	std::cout << "[103] send invite to [id] "<< playerid <<"\n";
+	return;
+}
+
+
 
 void bot_lobbymessage(boost::shared_ptr<ClientThread> client,const ChatMessage &netMessage )
 {
 
-	std::cout << "[001] Lobby Message\n";
+	// std::cout << "[001] Lobby Message\n";
 
 	return;
 }
@@ -81,7 +100,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	unsigned pid=netMessage.playerid();
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
 	std::string pname=pi1.playerName;
-	client->SendLobbyChatMessage("i got a private message from "+pname); // this can be removed in the future
+	// client->SendLobbyChatMessage("i got a private message from "+pname); // this can be removed in the future
 	// TODO: check creategamestate
 	if(netMessage.chattext()=="create")
 	{
@@ -95,41 +114,59 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		client->bot.creategamestate=GS_GOTCOMMAND;
 		client->SendCreateGame(gd1, "Test Game from "+pname, "", false);
 	}
+	// start debug code
+	if(netMessage.chattext()=="invite" && pid==client->GetGuiPlayerId())
+	{
+		std::cout <<"[104] invite debug command from [id="<<pid;
+		std::cout <<"], [state="<<client->bot.creategamestate<<"]\n";
+		client->SendInvitePlayerToCurrentGame(client->bot.creatorid); 
+		client->bot.creategamestate=GS_SENDINV;
+		std::cout << "[103] send invite to [id] "<< client->bot.creatorid <<"\n";
+		
+	}
+	// end debug code
 	return;
 }
 
 void bot_newgame(boost::shared_ptr<ClientThread> client,const GameListNewMessage &netListNew)
 {
-	std::cout << "[003] New Game created\n";
+	//std::cout << "[003] New Game created\n";
 	unsigned adminpid=netListNew.adminplayerid();
 	if(adminpid==client->GetGuiPlayerId() && client->bot.creategamestate==GS_GOTCOMMAND)
 	{
 		std::cout << "[102] game by bbcbot created\n";
 		client->bot.creategamestate=GS_CREATED;
 		
-		//TODO: invite the creator
-		client->SendInvitePlayerToCurrentGame(client->bot.creatorid);
-		client->bot.creategamestate=GS_SENDINV;
-		std::cout << "[103] send invite to [id] "<< client->bot.creatorid <<"\n";
+		// client->SendInvitePlayerToCurrentGame(client->bot.creatorid); //FIXME: this doesnt work :(
+		// client->bot.creategamestate=GS_SENDINV;
+		std::cout << "[105] start timer for invite [id] "<< client->bot.creatorid <<"\n";
+		boost::asio::io_service io;
+		std::cout << "[110] start timer 1\n";
+		boost::asio::deadline_timer t(io, boost::posix_time::milliseconds(9000));
+		std::cout << "[110] start timer 2\n";
+		t.async_wait(boost::bind(bottimer_invite,boost::asio::placeholders::error, client));
+		std::cout << "[110] start timer 3\n";
+		io.run();
+		std::cout << "[110] start timer 4\n";
 	}
 	return;
 }
 
 void bot_gameupdate(boost::shared_ptr<ClientThread> client,const GameListUpdateMessage &netListUpdate)
 {
-	std::cout << "[004] A Game changed its status\n";
+	// std::cout << "[004] A Game changed its status\n";
 	return;
 }
 
 void bot_playerjoin(boost::shared_ptr<ClientThread> client, const GameListPlayerJoinedMessage &netListJoined)
 {	
-	std::cout << "[005] A Player joined a game\n";
+	// std::cout << "[005] A Player joined a game\n";
 	return;
 }
 
 void bot_playerleft(boost::shared_ptr<ClientThread> client,const GameListPlayerLeftMessage &netListLeft)
 {
-	std::cout << "[006] A player left a game\n";
+	// std::cout << "[006] A player left a game\n";
 	return;
 }
 
@@ -780,9 +817,6 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListNewMessage) {
 		// A new game was created on the server.
 		const GameListNewMessage &netListNew = tmpPacket->GetMsg()->gamelistnewmessage();
-		bot_newgame(client,netListNew); // bbcbot code
-		
-		
 
 		// Request player info for players if needed.
 		GameInfo tmpInfo;
@@ -813,8 +847,8 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 		tmpInfo.mode = static_cast<GameMode>(netListNew.gamemode());
 		tmpInfo.name = netListNew.gameinfo().gamename();
 		NetPacket::GetGameData(netListNew.gameinfo(), tmpInfo.data);
-
 		client->AddGameInfo(netListNew.gameid(), tmpInfo);
+		bot_newgame(client,netListNew); // bbcbot code
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListUpdateMessage) {
 		// An existing game was updated on the server.
 		
