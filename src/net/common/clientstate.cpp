@@ -115,6 +115,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 			gd1.manualBlindsList.push_back(60*i);
 			gd1.manualBlindsList.push_back(80*i);
 			gd1.manualBlindsList.push_back(100*i);
+			gd1.manualBlindsList.push_back(120*i);
 			gd1.manualBlindsList.push_back(150*i);
 		}
 		
