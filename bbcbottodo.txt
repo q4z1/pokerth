@@ -2,10 +2,8 @@
 
 TODOLIST for bbcbot - order by priority
 
-- leave game after a  certain time if nothing happened
-- leave game after a short time if creator joins 
 - leave game if creator doesnt accept invitation
-
+- test for antispam detector of private messages
 
 
 
