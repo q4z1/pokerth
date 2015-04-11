@@ -71,17 +71,6 @@ using namespace boost::filesystem;
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 
-void bottimer_invite(const boost::system::error_code& /*e*/,boost::shared_ptr<ClientThread> client)
-{
-	unsigned playerid=client->bot.creatorid;
-	std::cout << "[106] Timer called for invite\n";
-	std::cout <<"[104] invite debug command from [id="<<playerid;
-	std::cout <<"], [state="<<client->bot.creategamestate<<"]\n";
-	client->SendInvitePlayerToCurrentGame(playerid); 
-	client->bot.creategamestate=GS_SENDINV;
-	std::cout << "[103] send invite to [id] "<< playerid <<"\n";
-	return;
-}
 
 
 
@@ -95,7 +84,6 @@ void bot_lobbymessage(boost::shared_ptr<ClientThread> client,const ChatMessage &
 
 void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage &netMessage)
 {
- 
 	std::cout << "[002] Private Message\n";  		
 	unsigned pid=netMessage.playerid();
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
@@ -134,20 +122,14 @@ void bot_newgame(boost::shared_ptr<ClientThread> client,const GameListNewMessage
 	unsigned adminpid=netListNew.adminplayerid();
 	if(adminpid==client->GetGuiPlayerId() && client->bot.creategamestate==GS_GOTCOMMAND)
 	{
+		
 		std::cout << "[102] game by bbcbot created\n";
 		client->bot.creategamestate=GS_CREATED;
+		client->bot.countdowninvite=5;
+		// TODO: init timer
 		
 		// client->SendInvitePlayerToCurrentGame(client->bot.creatorid); //FIXME: this doesnt work :(
 		// client->bot.creategamestate=GS_SENDINV;
-		std::cout << "[105] start timer for invite [id] "<< client->bot.creatorid <<"\n";
-		boost::asio::io_service io;
-		std::cout << "[110] start timer 1\n";
-		boost::asio::deadline_timer t(io, boost::posix_time::milliseconds(9000));
-		std::cout << "[110] start timer 2\n";
-		t.async_wait(boost::bind(bottimer_invite,boost::asio::placeholders::error, client));
-		std::cout << "[110] start timer 3\n";
-		io.run();
-		std::cout << "[110] start timer 4\n";
 	}
 	return;
 }

@@ -62,6 +62,8 @@ struct Gsasl;
 
 // start bbcbot code
 
+
+
 enum bbcbotgamestate
 {
 	GS_NORMAL=0,
@@ -73,10 +75,10 @@ enum bbcbotgamestate
 
 struct bbcbotdata
 {
-	bbcbotdata() : creategamestate(GS_NORMAL),creatorid(0) {}
+	bbcbotdata() : creategamestate(GS_NORMAL),creatorid(0),countdowninvite(0) {}
 	bbcbotgamestate creategamestate;
 	unsigned creatorid;//playerid
-
+	int countdowninvite; // timer
 };
 // end bbcbot code
 
@@ -229,6 +231,8 @@ protected:
 	void SetUnknownAvatar(unsigned playerId);
 
 	void TimerCheckAvatarDownloads(const boost::system::error_code& ec);
+	void bbcbotTimerCallback(const boost::system::error_code& ec); // bbcbot code
+	void bot_invite();//bbcbot code
 
 	void UnsubscribeLobbyMsg();
 	void ResubscribeLobbyMsg();
@@ -365,6 +369,7 @@ private:
 
 	boost::asio::deadline_timer m_stateTimer;
 	boost::asio::deadline_timer m_avatarTimer;
+	boost::asio::deadline_timer m_bbcbotTimer; //bbcbot code
 
 	friend class AbstractClientStateReceiving;
 	friend class ClientStateInit;

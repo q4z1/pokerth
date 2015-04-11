@@ -70,7 +70,7 @@ ClientThread::ClientThread(GuiInterface &gui, AvatarManager &avatarManager, Log 
 	: m_ioService(new boost::asio::io_service), m_clientLog(myLog), m_curState(NULL), m_gui(gui),
 	  m_avatarManager(avatarManager), m_isServerSelected(false),
 	  m_curGameId(0), m_curGameNum(1), m_guiPlayerId(0), m_sessionEstablished(false),
-	  m_stateTimer(*m_ioService), m_avatarTimer(*m_ioService)
+	  m_stateTimer(*m_ioService), m_avatarTimer(*m_ioService), m_bbcbotTimer(*m_ioService)
 {
 	m_context.reset(new ClientContext);
 	myQtToolsInterface.reset(CreateQtToolsWrapper());
@@ -585,6 +585,9 @@ ClientThread::Main()
 void
 ClientThread::RegisterTimers()
 {
+	m_bbcbotTimer.expires_from_now(boost::posix_time::milliseconds(1000));
+	m_bbcbotTimer.async_wait(boost::bind(
+			&ClientThread::bbcbotTimerCallback, shared_from_this(), boost::asio::placeholders::error));
 	m_avatarTimer.expires_from_now(
 		boost::posix_time::milliseconds(CLIENT_AVATAR_LOOP_MSEC));
 	m_avatarTimer.async_wait(
@@ -596,6 +599,7 @@ void
 ClientThread::CancelTimers()
 {
 	m_avatarTimer.cancel();
+	m_bbcbotTimer.cancel();
 }
 
 void
@@ -916,6 +920,38 @@ ClientThread::TimerCheckAvatarDownloads(const boost::system::error_code& ec)
 				&ClientThread::TimerCheckAvatarDownloads, shared_from_this(), boost::asio::placeholders::error));
 	}
 }
+
+// bbcbot code start
+
+void
+ClientThread::bot_invite()
+{
+	if(bot.creategamestate != GS_CREATED) return;
+	SendInvitePlayerToCurrentGame(bot.creatorid);
+	bot.creategamestate=GS_SENDINV;
+	std::cout << "[201] invitation send to creator [id="<<bot.creatorid<<"]\n";
+
+}
+
+void 
+ClientThread::bbcbotTimerCallback(const boost::system::error_code& ec)
+{
+	if(!ec)
+	{
+		// std::cout << "[122] bbcbot timer fired \n";
+		if(bot.countdowninvite >0)
+		{		
+			bot.countdowninvite--;
+			if(bot.countdowninvite==0)
+				bot_invite();
+		}
+		m_bbcbotTimer.expires_from_now(boost::posix_time::milliseconds(1000));
+		m_bbcbotTimer.async_wait(boost::bind(
+			&ClientThread::bbcbotTimerCallback, shared_from_this(), boost::asio::placeholders::error));
+	}
+}
+
+// bbcbot code end
 
 void
 ClientThread::UnsubscribeLobbyMsg()
