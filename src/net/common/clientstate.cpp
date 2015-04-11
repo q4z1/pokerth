@@ -125,7 +125,8 @@ void bot_newgame(boost::shared_ptr<ClientThread> client,const GameListNewMessage
 		
 		std::cout << "[102] game by bbcbot created\n";
 		client->bot.creategamestate=GS_CREATED;
-		client->bot.countdowninvite=5;
+		client->bot.countdowninvite=3;
+		client->bot.countdowninvitetimeout=30;
 		// TODO: init timer
 		
 		// client->SendInvitePlayerToCurrentGame(client->bot.creatorid); //FIXME: this doesnt work :(
@@ -143,6 +144,15 @@ void bot_gameupdate(boost::shared_ptr<ClientThread> client,const GameListUpdateM
 void bot_playerjoin(boost::shared_ptr<ClientThread> client, const GameListPlayerJoinedMessage &netListJoined)
 {	
 	// std::cout << "[005] A Player joined a game\n";
+	unsigned gameid=netListJoined.gameid();
+	unsigned playerid=netListJoined.playerid();
+	if(playerid==client->bot.creatorid && gameid==client->GetGameId() && client->bot.creategamestate==GS_SENDINV)
+	{
+		std::cout << "[105] creator accepted invitation\n";
+		client->bot.creategamestate=GS_ACCEPTED;
+		client->bot.countdownleave=2;
+		client->bot.countdowninvitetimeout=0;
+	}
 	return;
 }
 

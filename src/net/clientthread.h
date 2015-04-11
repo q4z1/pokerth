@@ -69,16 +69,20 @@ enum bbcbotgamestate
 	GS_NORMAL=0,
 	GS_GOTCOMMAND,
 	GS_CREATED,
-	GS_SENDINV
+	GS_SENDINV,
+	GS_ACCEPTED // creator accepted registration
 }; // forgames created by PM
 
 
 struct bbcbotdata
 {
-	bbcbotdata() : creategamestate(GS_NORMAL),creatorid(0),countdowninvite(0) {}
+	bbcbotdata() : creategamestate(GS_NORMAL),creatorid(0),
+	countdowninvite(0),countdowninvitetimeout(0),countdownleave(0)	 {}
 	bbcbotgamestate creategamestate;
 	unsigned creatorid;//playerid
 	int countdowninvite; // timer
+	int countdowninvitetimeout; // timer
+	int countdownleave; // timer
 };
 // end bbcbot code
 
@@ -233,6 +237,8 @@ protected:
 	void TimerCheckAvatarDownloads(const boost::system::error_code& ec);
 	void bbcbotTimerCallback(const boost::system::error_code& ec); // bbcbot code
 	void bot_invite();//bbcbot code
+	void bot_invitetimeout();//bbcbot code
+	void bot_leave();//bbcbot code
 
 	void UnsubscribeLobbyMsg();
 	void ResubscribeLobbyMsg();

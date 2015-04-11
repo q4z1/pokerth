@@ -2,10 +2,9 @@
 
 TODOLIST for bbcbot - order by priority
 
-- solve timer problem - client should continue to behave normally (multithreading? )
-- test new invite modus with timer
 - leave game after a  certain time if nothing happened
 - leave game after a short time if creator joins 
+- leave game if creator doesnt accept invitation
 
 
 

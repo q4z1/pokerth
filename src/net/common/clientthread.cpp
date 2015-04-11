@@ -932,6 +932,23 @@ ClientThread::bot_invite()
 	std::cout << "[201] invitation send to creator [id="<<bot.creatorid<<"]\n";
 
 }
+void
+ClientThread::bot_invitetimeout()
+{
+	if(bot.creategamestate != GS_CREATED && bot.creategamestate!=GS_SENDINV && bot.creategamestate!=GS_ACCEPTED) return;
+	SendLeaveCurrentGame();
+	bot.creategamestate=GS_NORMAL;
+	std::cout << "[202] timeout of game create request [id="<<bot.creatorid<<"]\n";
+}
+void
+ClientThread::bot_leave()
+{
+	if(bot.creategamestate!=GS_ACCEPTED) return;
+	SendLeaveCurrentGame();
+	bot.creategamestate=GS_NORMAL;
+	std::cout << "[203] left game for creator [id="<<bot.creatorid<<"]\n";
+	bot.countdowninvitetimeout=0;
+}
 
 void 
 ClientThread::bbcbotTimerCallback(const boost::system::error_code& ec)
@@ -939,11 +956,23 @@ ClientThread::bbcbotTimerCallback(const boost::system::error_code& ec)
 	if(!ec)
 	{
 		// std::cout << "[122] bbcbot timer fired \n";
+		if(bot.countdowninvitetimeout>0)
+		{
+			bot.countdowninvitetimeout--;
+			if(bot.countdowninvitetimeout==0)
+				bot_invitetimeout();
+		}
 		if(bot.countdowninvite >0)
 		{		
 			bot.countdowninvite--;
 			if(bot.countdowninvite==0)
 				bot_invite();
+		}
+		if(bot.countdownleave >0)
+		{		
+			bot.countdownleave--;
+			if(bot.countdownleave==0)
+				bot_leave();
 		}
 		m_bbcbotTimer.expires_from_now(boost::posix_time::milliseconds(1000));
 		m_bbcbotTimer.async_wait(boost::bind(

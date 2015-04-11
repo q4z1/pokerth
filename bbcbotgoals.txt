@@ -25,6 +25,7 @@ GOAL 4
 
 implement "ticket" command - it prints the tickets of a player
 similar, implement a "rating" command
+make a help command that points to a webpage
 
 
 GOAL 5
@@ -46,12 +47,22 @@ GOAL 6
 report a BBC game on request for an admin
 remember logfile links from non-admin (and make a copy)
 
+
 GOAL 7
+------
+
+bbcbot can be used for authentification of bbc account
+
+GOAL 8
+------
+
+make a PM-service (website to pokerth lobby), so you can reach players shortly after they joined the lobby
+
+GOAL 9
 ------
 
 help bbc admins with inviting based on bbc website
 write warnings if bbc rules (e.g. tickets) are about to be violated
-
 
 
 
