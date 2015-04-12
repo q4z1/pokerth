@@ -108,7 +108,7 @@ int main( int argc, char **argv )
 	QApplication a(argc, argv);
 	a.setApplicationName("PokerTH");
 #else
-	SharedTools::QtSingleApplication a( "PokerTH", argc, argv );
+	SharedTools::QtSingleApplication a( "pokerth-bbcbot", argc, argv );
 	if (a.sendMessage("Wake up!")) {
 		return 0;
 	}
