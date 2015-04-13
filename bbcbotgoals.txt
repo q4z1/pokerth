@@ -10,7 +10,7 @@ GOAL 2
 ------
 
 Create different type of games (step1-step4, monthly cup, heads-up) on command, load type of games and game settings from bbc website, only allow bbc admins to create games (depending on type).
- Reject any Invitation for BBC BOT
+
 
 GOAL 3
 ------
@@ -18,6 +18,7 @@ GOAL 3
 [possible before goal 2]
 bbcbot should auto-connect on startup and should close after connection or try to reconnect regularly
 prevent disconnect due to inactivity
+Reject any Invitation for BBC BOT 
 [so bbcbot can run 24-7]
 
 GOAL 4
