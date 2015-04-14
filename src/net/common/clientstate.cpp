@@ -126,11 +126,11 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		std::cout << "[101] create command from [id] "<< pid <<"\n";
 		GameData gd1;
 		gd1.gameType=GAME_TYPE_INVITE_ONLY;
-		gd1.maxNumberOfPlayers=10;
-		gd1.startMoney=3000;
+		gd1.maxNumberOfPlayers=2;
+		gd1.startMoney=1000;
 		gd1.firstSmallBlind=15;
 		gd1.raiseIntervalMode=RAISE_ON_MINUTES;
-		gd1.raiseSmallBlindEveryMinutesValue=5;
+		gd1.raiseSmallBlindEveryMinutesValue=2;
 		gd1.delayBetweenHandsSec=7;
 		gd1.playerActionTimeoutSec=10;
 		// Manual Blind List : 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 
