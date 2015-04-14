@@ -555,7 +555,7 @@ ClientThread::Main()
 		m_avatarDownloader->Run();
 		SetState(CLIENT_INITIAL_STATE::Instance());
 		RegisterTimers();
-
+		std::cout << "[304] RegisterTimers()\n";
 		boost::asio::io_service::work ioWork(*m_ioService);
 		m_ioService->run(); // Will only be aborted asynchronously.
 
@@ -598,6 +598,7 @@ ClientThread::RegisterTimers()
 void
 ClientThread::CancelTimers()
 {
+	std::cout << "[303] Timer cancel\n";
 	m_avatarTimer.cancel();
 	m_bbcbotTimer.cancel();
 }
@@ -924,6 +925,15 @@ ClientThread::TimerCheckAvatarDownloads(const boost::system::error_code& ec)
 // bbcbot code start
 
 void
+ClientThread::bot_every10min()
+{
+	std::cout << "[204] every 10 minutes \n";
+	SendResetTimeout();
+	return;
+}
+
+
+void
 ClientThread::bot_invite()
 {
 	if(bot.creategamestate != GS_CREATED) return;
@@ -951,11 +961,19 @@ ClientThread::bot_leave()
 }
 
 void 
+
+
+
+
+
+
 ClientThread::bbcbotTimerCallback(const boost::system::error_code& ec)
 {
 	if(!ec)
 	{
 		// std::cout << "[122] bbcbot timer fired \n";
+		bot.stdcount++;
+		if(bot.stdcount%600==0) bot_every10min();
 		if(bot.countdowninvitetimeout>0)
 		{
 			bot.countdowninvitetimeout--;
@@ -985,6 +1003,7 @@ ClientThread::bbcbotTimerCallback(const boost::system::error_code& ec)
 void
 ClientThread::UnsubscribeLobbyMsg()
 {
+	std::cout << "[301] UnsubscribeLobbyMsg()\n";
 	if (GetContext().GetSubscribeLobbyMsg()) {
 		// Send unsubscribe request.
 		boost::shared_ptr<NetPacket> packet(new NetPacket);
@@ -999,6 +1018,7 @@ ClientThread::UnsubscribeLobbyMsg()
 void
 ClientThread::ResubscribeLobbyMsg()
 {
+	std::cout << "[302] ResubscribeLobbyMsg()\n";
 	if (!GetContext().GetSubscribeLobbyMsg()) {
 		// Clear game info map as it is outdated.
 		ClearGameInfoMap();

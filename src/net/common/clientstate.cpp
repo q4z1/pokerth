@@ -121,6 +121,39 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		client->bot.creategamestate=GS_GOTCOMMAND;
 		client->SendCreateGame(gd1, "BBC Step 1 (with "+pname+")", "", false);
 	}
+	if((netMessage.chattext()=="create husc")&& client->bot.creategamestate==GS_NORMAL)
+	{
+		std::cout << "[101] create command from [id] "<< pid <<"\n";
+		GameData gd1;
+		gd1.gameType=GAME_TYPE_INVITE_ONLY;
+		gd1.maxNumberOfPlayers=10;
+		gd1.startMoney=3000;
+		gd1.firstSmallBlind=15;
+		gd1.raiseIntervalMode=RAISE_ON_MINUTES;
+		gd1.raiseSmallBlindEveryMinutesValue=5;
+		gd1.delayBetweenHandsSec=7;
+		gd1.playerActionTimeoutSec=10;
+		// Manual Blind List : 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 
+		// 200, 250, 300, 400, 500, 600, 800, 1000, 1200, 1500, 
+		// 2000, 2500, 3000, 4000, 5000, 6000, 8000, 10000, 12000, 15000, afterwards blinds are doubled.
+		for(int i=1;i<101;i*=10)
+		{
+			gd1.manualBlindsList.push_back(20*i);
+			gd1.manualBlindsList.push_back(25*i);
+			gd1.manualBlindsList.push_back(30*i);
+			gd1.manualBlindsList.push_back(40*i);
+			gd1.manualBlindsList.push_back(50*i);
+			gd1.manualBlindsList.push_back(60*i);
+			gd1.manualBlindsList.push_back(80*i);
+			gd1.manualBlindsList.push_back(100*i);
+			gd1.manualBlindsList.push_back(120*i);
+			gd1.manualBlindsList.push_back(150*i);
+		}
+		
+		client->bot.creatorid=pid;
+		client->bot.creategamestate=GS_GOTCOMMAND;
+		client->SendCreateGame(gd1, "BBC Step 1 (with "+pname+")", "", false);
+	}
 	return;
 }
 

@@ -67,6 +67,8 @@ public:
 
 	void addOwnAvatar(const std::string &avatarFile);
 
+	std::string bbcbotpassword;
+	
 	void startLocalGame(const GameData &gameData, const StartData &startData);
 	void startClientGame(boost::shared_ptr<Game> game);
 

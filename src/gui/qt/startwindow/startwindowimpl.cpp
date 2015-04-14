@@ -68,13 +68,14 @@
 
 using namespace std;
 
-startWindowImpl::startWindowImpl(ConfigFile *c, Log *l)
+startWindowImpl::startWindowImpl(ConfigFile *c, Log *l,std::string password) // bbcbot code
 	: myConfig(c), myLog(l), msgBoxOutdatedVersionActive(false)
 {
 
 	myGuiInterface.reset(new GuiWrapper(myConfig, this));
 	{
 		mySession.reset(new Session(myGuiInterface.get(), myConfig, myLog));
+		mySession->bbcbotpassword=password; // bbcbot code
 		mySession->init(); // TODO handle error
 		myLog->init();
 		// 		myGuiInterface->setSession(session);
@@ -291,7 +292,8 @@ void startWindowImpl::callNewGameDialog()
 
 void startWindowImpl::startNewLocalGame(newGameDialogImpl *v)
 {
-
+	std::cout << "[242] startWindowImpl::startNewLocalGame() \n";
+	
 	this->hide();
 	myGuiInterface->getMyW()->show();
 
@@ -397,7 +399,7 @@ void startWindowImpl::startNewLocalGame(newGameDialogImpl *v)
 
 void startWindowImpl::callGameLobbyDialog()
 {
-
+	std::cout<<"[243] startWindowImpl::callGameLobbyDialog()\n";
 	//Avoid join Lobby with "Human Player" nick
 	if(QString::fromUtf8(myConfig->readConfigString("MyName").c_str()) == QString("Human Player")) {
 		changeContentDialogImpl dialog(this, myConfig, CHANGE_HUMAN_PLAYER_NAME);
@@ -412,7 +414,7 @@ void startWindowImpl::callGameLobbyDialog()
 
 void startWindowImpl::joinGameLobby()
 {
-
+	std::cout<<"[244] startWindowImpl::joinGameLobby()\n";
 	// Stop local game.
 	myGuiInterface->getMyW()->stopTimer();
 
@@ -428,11 +430,16 @@ void startWindowImpl::joinGameLobby()
 
 	//start internet client with config values for user and pw TODO
 	mySession->startInternetClient();
-
+	std::cout << "[245] in joinGameLobby()\n";
+	
+	//myInternetGameLoginDialog->clickLoginButton(); // bbcbot code, doesnt work
+	
 	//Dialog mit Statusbalken
 	myConnectToServerDialog->exec();
 	if (myConnectToServerDialog->result() == QDialog::Accepted ) {
+		std::cout << "[246] in joinGameLobby(), before showLobbyDialog\n";
 		showLobbyDialog();
+		std::cout << "[247] in joinGameLobby(), after showLobbyDialog\n";
 	} else {
 		mySession->terminateNetworkClient();
 	}
@@ -441,6 +448,7 @@ void startWindowImpl::joinGameLobby()
 
 void startWindowImpl::callInternetGameLoginDialog()
 {
+	std::cout << "[251] startWindowImpl::callInternetGameLoginDialog()\n";
 
 	//login
 
@@ -451,19 +459,22 @@ void startWindowImpl::callInternetGameLoginDialog()
 		msgBoxOutdatedVersion.raise();
 		msgBoxOutdatedVersion.activateWindow();
 	}
+	
+	std::cout << "[252] startWindowImpl::callInternetGameLoginDialog() before exec()\n";
+	
+	/*myInternetGameLoginDialog->exec();*/ // TODO: test :(
 
-	myInternetGameLoginDialog->exec();
-
-	if(myInternetGameLoginDialog->result() == QDialog::Accepted) {
+	/*if(myInternetGameLoginDialog->result() == QDialog::Accepted) {*/
 		//send login infos
+		std::cout << "[253] startWindowImpl::callInternetGameLoginDialog() before mySession->setLogin()\n";
 		mySession->setLogin(
-			myConfig->readConfigString("MyName"),
-			myInternetGameLoginDialog->lineEdit_password->text().toUtf8().constData(),
-			myInternetGameLoginDialog->checkBox_guest->isChecked());
-	} else {
+			/*myConfig->readConfigString("MyName")*/"bbcbot",
+			/*myInternetGameLoginDialog->lineEdit_password->text().toUtf8().constData()*/ mySession->bbcbotpassword,
+			/*myInternetGameLoginDialog->checkBox_guest->isChecked()*/false);
+	/*} else {
 		myConnectToServerDialog->reject();
 		mySession->terminateNetworkClient();
-	}
+	}*/
 }
 
 
@@ -620,6 +631,7 @@ void startWindowImpl::callJoinNetworkGameDialog()
 
 void startWindowImpl::showClientDialog()
 {
+	std::cout << "[241] startWindowImpl::showClientDialog()\n";
 	if (mySession->getGameType() == Session::GAME_TYPE_NETWORK) {
 		if (myGuiInterface->getMyW()->isVisible())
 			myGuiInterface->getMyW()->hide();
@@ -640,6 +652,7 @@ void startWindowImpl::showClientDialog()
 
 void startWindowImpl::showLobbyDialog()
 {
+	std::cout << "[248] startWindowImpl::showLobbyDialog()\n";
 	myGameLobbyDialog->exec();
 
 	if (myGameLobbyDialog->result() == QDialog::Accepted ) {

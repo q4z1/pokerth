@@ -77,12 +77,14 @@ enum bbcbotgamestate
 struct bbcbotdata
 {
 	bbcbotdata() : creategamestate(GS_NORMAL),creatorid(0),
-	countdowninvite(0),countdowninvitetimeout(0),countdownleave(0)	 {}
+	countdowninvite(0),countdowninvitetimeout(0),countdownleave(0),
+	stdcount(1) {}
 	bbcbotgamestate creategamestate;
 	unsigned creatorid;//playerid
 	int countdowninvite; // timer
 	int countdowninvitetimeout; // timer
 	int countdownleave; // timer
+	int stdcount;
 };
 // end bbcbot code
 
@@ -157,7 +159,7 @@ public:
 	void SendJoinGame(unsigned gameId, const std::string &password, bool autoLeave);
 	void SendRejoinGame(unsigned gameId, bool autoLeave);
 	void SendCreateGame(const GameData &gameData, const std::string &name, const std::string &password, bool autoLeave);
-	void SendResetTimeout();
+	void SendResetTimeout(); 
 	void SendAskKickPlayer(unsigned playerId);
 	void SendVoteKick(bool doKick);
 	void SendShowMyCards();
@@ -235,11 +237,13 @@ protected:
 	void SetUnknownAvatar(unsigned playerId);
 
 	void TimerCheckAvatarDownloads(const boost::system::error_code& ec);
+	// start bbcbot code
 	void bbcbotTimerCallback(const boost::system::error_code& ec); // bbcbot code
-	void bot_invite();//bbcbot code
-	void bot_invitetimeout();//bbcbot code
-	void bot_leave();//bbcbot code
-
+	void bot_invite();
+	void bot_invitetimeout();
+	void bot_leave();
+	void bot_every10min(); // other time intervals are possible in a similar way
+	// end bbcbot code
 	void UnsubscribeLobbyMsg();
 	void ResubscribeLobbyMsg();
 

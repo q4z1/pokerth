@@ -86,8 +86,17 @@ int main( int argc, char **argv )
 	std::cout << "*********************************\n";
 	std::cout << "*    bbcbot - welcome message   *\n";
 	std::cout << "*********************************\n";
-
-
+	std::string thebbcbotpassword="";
+	if(argc>1)
+	{
+		thebbcbotpassword=argv[1];
+		std::cout <<"\nWe use the following password for bbcbot:\n"<<thebbcbotpassword<<"\n";
+	}
+	else
+	{
+		std::cout << "\nSorry, we couldnt find a password, good bye\n";
+		return 1;
+	}
 	//ENABLE_LEAK_CHECK();
 
 	//_CrtSetBreakAlloc(49937);
@@ -230,11 +239,13 @@ int main( int argc, char **argv )
 	QPixmap pixmap(myAppDataPath + "gfx/gui/misc/welcomepokerth10_desktop.png");
 #endif
 	StartSplash splash(pixmap);
+	/*
 	if(!myConfig->readConfigInt("DisableSplashScreenOnStartup")) {
 		splash.show();
 		splash.showMessage(QString("Version %1").arg(POKERTH_BETA_RELEASE_STRING), 0x0042, QColor(255,255,255));
 	}
-
+	bbcbot code disable splash always
+	*/
 	//Set translations
 	QTranslator qtTranslator;
 	qtTranslator.load(QString(myAppDataPath +"translations/qt_") + QString::fromStdString(myConfig->readConfigString("Language")));
@@ -249,11 +260,16 @@ int main( int argc, char **argv )
 	qRegisterMetaType<DenyGameInvitationReason>("DenyGameInvitationReason");
 	///////////////////////////////////////////////////
 
-	startWindowImpl mainWin(myConfig,myLog);
+	
+	startWindowImpl mainWin(myConfig,myLog,thebbcbotpassword);
 #ifdef ANDROID
 	mainWin.show();
 #else
+	mainWin.joinGameLobby(); // bbcbot code, looks like it works
+	// mainWin.showLobbyDialog();
 	a.setActivationWindow(&mainWin, true);
+	
+	
 #endif
 	int retVal = a.exec();
 	curl_global_cleanup();
