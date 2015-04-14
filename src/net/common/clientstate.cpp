@@ -88,9 +88,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	unsigned pid=netMessage.playerid();
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
 	std::string pname=pi1.playerName;
-	// client->SendLobbyChatMessage("i got a private message from "+pname); // this can be removed in the future
-	// TODO: check creategamestate
-	if(netMessage.chattext()=="create step1" || netMessage.chattext()=="create step 1")
+	if((netMessage.chattext()=="create step1" || netMessage.chattext()=="create step 1")&& client->bot.creategamestate==GS_NORMAL)
 	{
 		std::cout << "[101] create command from [id] "<< pid <<"\n";
 		GameData gd1;
@@ -123,17 +121,6 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		client->bot.creategamestate=GS_GOTCOMMAND;
 		client->SendCreateGame(gd1, "BBC Step 1 (with "+pname+")", "", false);
 	}
-	// start debug code
-	if(netMessage.chattext()=="invite" && pid==client->GetGuiPlayerId())
-	{
-		std::cout <<"[104] invite debug command from [id="<<pid;
-		std::cout <<"], [state="<<client->bot.creategamestate<<"]\n";
-		client->SendInvitePlayerToCurrentGame(client->bot.creatorid); 
-		client->bot.creategamestate=GS_SENDINV;
-		std::cout << "[103] send invite to [id] "<< client->bot.creatorid <<"\n";
-		
-	}
-	// end debug code
 	return;
 }
 
@@ -148,10 +135,6 @@ void bot_newgame(boost::shared_ptr<ClientThread> client,const GameListNewMessage
 		client->bot.creategamestate=GS_CREATED;
 		client->bot.countdowninvite=3;
 		client->bot.countdowninvitetimeout=30;
-		// TODO: init timer
-		
-		// client->SendInvitePlayerToCurrentGame(client->bot.creatorid); //FIXME: this doesnt work :(
-		// client->bot.creategamestate=GS_SENDINV;
 	}
 	return;
 }
