@@ -84,7 +84,7 @@ void bot_lobbymessage(boost::shared_ptr<ClientThread> client,const ChatMessage &
 
 void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage &netMessage)
 {
-	std::cout << "[002] Private Message\n";  		
+	std::cout << "[002] Private Message: "<<netMessage.chattext()<<"\n";  		
 	unsigned pid=netMessage.playerid();
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
 	std::string pname=pi1.playerName;
@@ -121,8 +121,10 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		client->bot.creategamestate=GS_GOTCOMMAND;
 		client->SendCreateGame(gd1, "BBC Step 1 (with "+pname+")", "", false);
 	}
-	if((netMessage.chattext()=="create husc")&& client->bot.creategamestate==GS_NORMAL)
+	
+	if(netMessage.chattext().substr(0,12)=="create husc " || netMessage.chattext().substr(0,12)=="create HUSC")
 	{
+		std::string gname="HUSC "+netMessage.chattext().substr(12);
 		std::cout << "[101] create command from [id] "<< pid <<"\n";
 		GameData gd1;
 		gd1.gameType=GAME_TYPE_INVITE_ONLY;
@@ -149,10 +151,23 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 			gd1.manualBlindsList.push_back(120*i);
 			gd1.manualBlindsList.push_back(150*i);
 		}
-		
-		client->bot.creatorid=pid;
-		client->bot.creategamestate=GS_GOTCOMMAND;
-		client->SendCreateGame(gd1, "BBC Step 1 (with "+pname+")", "", false);
+		bool cancreategame=true;
+		if(client->bot.creategamestate!=GS_NORMAL)
+		{
+			cancreategame=false;
+			client->SendPrivateChatMessage(pid,"ERROR: i cannot open a game for you right now");
+		}
+		if(cancreategame&&(gname=="" || gname==" "))
+		{
+			cancreategame=false;
+			client->SendPrivateChatMessage(pid,"ERROR: game name not accepted");
+		}
+		if(cancreategame)
+		{
+			client->bot.creatorid=pid;
+			client->bot.creategamestate=GS_GOTCOMMAND;
+			client->SendCreateGame(gd1, gname, "", false);
+		}
 	}
 	return;
 }
@@ -1428,6 +1443,9 @@ ClientStateWaitJoin::InternalHandlePacket(boost::shared_ptr<ClientThread> client
 		const JoinGameFailedMessage &netJoinFailed = tmpPacket->GetMsg()->joingamefailedmessage();
 
 		int failureCode;
+		
+		bool botfailedgame=false;
+		
 		switch (netJoinFailed.joingamefailurereason()) {
 		case JoinGameFailedMessage::invalidGame :
 			failureCode = NTF_NET_JOIN_GAME_INVALID;
@@ -1449,9 +1467,13 @@ ClientStateWaitJoin::InternalHandlePacket(boost::shared_ptr<ClientThread> client
 			break;
 		case JoinGameFailedMessage::gameNameInUse :
 			failureCode = NTF_NET_JOIN_GAME_NAME_IN_USE;
+			std::cout << "[114] game name is already in use\n";
+			botfailedgame=true; // bbcbot code
 			break;
 		case JoinGameFailedMessage::badGameName :
 			failureCode = NTF_NET_JOIN_GAME_BAD_NAME;
+			std::cout << "[115] game name is bad\n";
+			botfailedgame=true; // bbcbot code
 			break;
 		case JoinGameFailedMessage::invalidSettings :
 			failureCode = NTF_NET_JOIN_INVALID_SETTINGS;
@@ -1466,8 +1488,14 @@ ClientStateWaitJoin::InternalHandlePacket(boost::shared_ptr<ClientThread> client
 			failureCode = NTF_NET_INTERNAL;
 			break;
 		}
-
-		client->GetCallback().SignalNetClientNotification(failureCode);
+		if(botfailedgame)
+		{
+			client->SendPrivateChatMessage(client->bot.creatorid,"ERROR: game name already in use or bad");
+			client->bot.creategamestate=GS_NORMAL;
+			// TODO: send error message to us
+			
+		}
+		if(!botfailedgame) client->GetCallback().SignalNetClientNotification(failureCode);
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_InviteNotifyMessage) {
 		const InviteNotifyMessage &netInvNotify = tmpPacket->GetMsg()->invitenotifymessage();
 		if (netInvNotify.playeridwho() == client->GetGuiPlayerId()) {
