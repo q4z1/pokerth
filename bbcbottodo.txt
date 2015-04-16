@@ -10,3 +10,11 @@ TODOLIST for bbcbot - order by priority
 - if accidently got in game, leave
 
 
+
+RESULTS (constraints for bbcbot)
+
+- max number of character for private chat message: 128. if more, it gets rejected
+- can send at least 16 private messages per second
+- cannot create game with more than 30 blinds in list - if more, no reaction
+
+

@@ -71,7 +71,14 @@ using namespace boost::filesystem;
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 
-
+std::string int2string(int a)
+{
+	char*buffer=new char[16];
+	sprintf(buffer,"%d",a);
+	string ret=string(buffer);
+	delete[] buffer;
+	return ret;
+}
 
 
 void bot_lobbymessage(boost::shared_ptr<ClientThread> client,const ChatMessage &netMessage )
@@ -84,10 +91,10 @@ void bot_lobbymessage(boost::shared_ptr<ClientThread> client,const ChatMessage &
 
 void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage &netMessage)
 {
-	std::cout << "[002] Private Message: "<<netMessage.chattext()<<"\n";  		
 	unsigned pid=netMessage.playerid();
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
 	std::string pname=pi1.playerName;
+	std::cout << "[002] Private Message from "<<pname<<": "<<netMessage.chattext()<<"\n"; 
 	if((netMessage.chattext()=="create step1" || netMessage.chattext()=="create step 1")&& client->bot.creategamestate==GS_NORMAL)
 	{
 		std::cout << "[101] create command from [id] "<< pid <<"\n";
@@ -115,14 +122,12 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 			gd1.manualBlindsList.push_back(100*i);
 			gd1.manualBlindsList.push_back(120*i);
 			gd1.manualBlindsList.push_back(150*i);
-		}
-		
+		}	
 		client->bot.creatorid=pid;
 		client->bot.creategamestate=GS_GOTCOMMAND;
 		client->SendCreateGame(gd1, "BBC Step 1 (with "+pname+")", "", false);
 	}
-	
-	if(netMessage.chattext().substr(0,12)=="create husc " || netMessage.chattext().substr(0,12)=="create HUSC")
+	if(netMessage.chattext().substr(0,12)=="create husc " || netMessage.chattext().substr(0,12)=="create HUSC ")
 	{
 		std::string gname="HUSC "+netMessage.chattext().substr(12);
 		std::cout << "[101] create command from [id] "<< pid <<"\n";
@@ -151,6 +156,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 			gd1.manualBlindsList.push_back(120*i);
 			gd1.manualBlindsList.push_back(150*i);
 		}
+		
 		bool cancreategame=true;
 		if(client->bot.creategamestate!=GS_NORMAL)
 		{
@@ -168,6 +174,11 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 			client->bot.creategamestate=GS_GOTCOMMAND;
 			client->SendCreateGame(gd1, gname, "", false);
 		}
+	}
+	if(netMessage.chattext()=="uptime")
+	{
+		std::string number=int2string(client->bot.stdcount);
+		client->SendPrivateChatMessage(pid,"Uptime: "+number+" seconds (no precise time measurement, sry)");
 	}
 	return;
 }
