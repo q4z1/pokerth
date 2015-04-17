@@ -42,6 +42,8 @@
 #include <core/crypthelper.h>
 #include <qttoolsinterface.h>
 
+#include <time.h> // bbcbot code
+
 #include <game.h>
 #include <playerinterface.h>
 
@@ -95,7 +97,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
 	std::string pname=pi1.playerName;
 	std::cout << "[002] Private Message from "<<pname<<": "<<netMessage.chattext()<<"\n"; 
-	if((netMessage.chattext()=="create step1" || netMessage.chattext()=="create step 1")&& client->bot.creategamestate==GS_NORMAL)
+	if(client->bot.creategamestate==GS_NORMAL && (netMessage.chattext()=="create step1" || netMessage.chattext()=="create step 1"))
 	{
 		std::cout << "[101] create command from [id] "<< pid <<"\n";
 		GameData gd1;
@@ -179,6 +181,13 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	{
 		std::string number=int2string(client->bot.stdcount);
 		client->SendPrivateChatMessage(pid,"Uptime: "+number+" seconds (no precise time measurement, sry)");
+	}
+	if(pid=client->GetGuiPlayerId() && netMessage.chattext()=="caniwritemessagestomyself?")
+	{
+		// yeah, we are still able to get data !
+		time_t now=time(NULL);
+		std::cout << "[117] we are still connected. UNIX Time: "<<now << " \n";
+		// TODO: write time into file
 	}
 	return;
 }
@@ -1488,6 +1497,8 @@ ClientStateWaitJoin::InternalHandlePacket(boost::shared_ptr<ClientThread> client
 			break;
 		case JoinGameFailedMessage::invalidSettings :
 			failureCode = NTF_NET_JOIN_INVALID_SETTINGS;
+			std::cout << "[116] invalid game setting\n";
+			botfailedgame=true; // bbcbot code
 			break;
 		case JoinGameFailedMessage::ipAddressBlocked :
 			failureCode = NTF_NET_JOIN_IP_BLOCKED;
@@ -1501,16 +1512,19 @@ ClientStateWaitJoin::InternalHandlePacket(boost::shared_ptr<ClientThread> client
 		}
 		if(botfailedgame)
 		{
-			client->SendPrivateChatMessage(client->bot.creatorid,"ERROR: game name already in use or bad");
+			client->SendPrivateChatMessage(client->bot.creatorid,"ERROR: game name already in use or bad settings");
 			client->bot.creategamestate=GS_NORMAL;
-			// TODO: send error message to us
 			
 		}
 		if(!botfailedgame) client->GetCallback().SignalNetClientNotification(failureCode);
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_InviteNotifyMessage) {
 		const InviteNotifyMessage &netInvNotify = tmpPacket->GetMsg()->invitenotifymessage();
 		if (netInvNotify.playeridwho() == client->GetGuiPlayerId()) {
-			client->GetCallback().SignalSelfGameInvitation(netInvNotify.gameid(), netInvNotify.playeridbywhom());
+			
+			std::cout << "[118] got invited, sending rejection...\n";
+			client->SendRejectGameInvitation(netInvNotify.gameid(), DENY_GAME_INVITATION_NO);
+			// Disable GUI:
+			//client->GetCallback().SignalSelfGameInvitation(netInvNotify.gameid(), netInvNotify.playeridbywhom());
 		}
 	}
 }

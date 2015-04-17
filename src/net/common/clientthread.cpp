@@ -929,6 +929,7 @@ ClientThread::bot_every10min()
 {
 	std::cout << "[204] every 10 minutes \n";
 	SendResetTimeout();
+	SendPrivateChatMessage(GetGuiPlayerId(),"caniwritemessagestomyself?");
 	return;
 }
 
