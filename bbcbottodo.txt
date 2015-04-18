@@ -2,14 +2,7 @@
 
 TODOLIST for bbcbot - order by priority
 
-- leave game if creator doesnt accept invitation
-- test for antispam detector of private messages
-- prevent double name open
-- PM back if error
-- deny any invitations
-- if accidently got in game, leave
-
-
+- maybe downloader.py
 
 RESULTS (constraints for bbcbot)
 

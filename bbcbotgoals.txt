@@ -1,10 +1,12 @@
 
 
-GOAL 1
+GOAL 1 : done
 ------
 
 After a Private Message from Player X with text "create", "create step 1", or "create step1" create a BBC step 1 game, invite the player X. If player X joins the game, leave the game, so player X can be admin.
 [ rather a proof-of-concept goal ]
+
+
 
 GOAL 2
 ------
