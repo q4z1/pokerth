@@ -79,4 +79,12 @@ def checkhash1():
 	if hash1!=webhash : checkhash2()
 	return
 
-checkhash1()
+try:
+	print "[python] welcome to the downloader script"
+	checkhash1()
+	print "[python] Done."
+except:
+	print "[python] Sorry, there was an error in the downloader"
+	# TODO: ...
+	exit(1)
+

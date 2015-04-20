@@ -185,8 +185,13 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	if(pid=client->GetGuiPlayerId() && netMessage.chattext()=="caniwritemessagestomyself?")
 	{
 		// yeah, we are still able to get data !
+		ofstream connectionfile;
+		connectionfile.open("lastconnection.txt");
 		time_t now=time(NULL);
 		std::cout << "[117] we are still connected. UNIX Time: "<<now << " \n";
+		connectionfile << now;
+		int downloaderreturnvalue=system("python downloader.py");
+		connectionfile.close();
 		// TODO: write time into file
 	}
 	return;

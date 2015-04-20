@@ -927,7 +927,7 @@ ClientThread::TimerCheckAvatarDownloads(const boost::system::error_code& ec)
 void
 ClientThread::bot_every10min()
 {
-	std::cout << "[204] every 10 minutes \n";
+	// std::cout << "[204] every 10 minutes \n";
 	SendResetTimeout();
 	SendPrivateChatMessage(GetGuiPlayerId(),"caniwritemessagestomyself?");
 	return;
@@ -974,7 +974,7 @@ ClientThread::bbcbotTimerCallback(const boost::system::error_code& ec)
 	{
 		// std::cout << "[122] bbcbot timer fired \n";
 		bot.stdcount++;
-		if(bot.stdcount%600==0) bot_every10min();
+		if(bot.stdcount%600==60) bot_every10min();
 		if(bot.countdowninvitetimeout>0)
 		{
 			bot.countdowninvitetimeout--;
