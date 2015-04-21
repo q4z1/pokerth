@@ -63,6 +63,24 @@ struct Gsasl;
 // start bbcbot code
 
 
+struct bbcbotpermissiongroup
+{
+	bbcbotpermissiongroup() : groupname(""),isblacklist(false) {}
+	std::string groupname;
+	bool isblacklist;// otherwise whitelist
+	std::list<std::string> players;
+};
+
+struct bbcbotgamedata
+{
+	bbcbotgamedata() : pgroup(NULL),commandname(""),gamenameprefix("") {}
+	bbcbotpermissiongroup*pgroup;
+	std::string commandname;
+	std::string gamenameprefix;
+	GameData gdata;
+};
+
+
 
 enum bbcbotgamestate
 {
@@ -85,6 +103,8 @@ struct bbcbotdata
 	int countdowninvitetimeout; // timer
 	int countdownleave; // timer
 	int stdcount;
+	std::list<bbcbotpermissiongroup> pgroups;
+	std::list<bbcbotgamedata> gdata;
 };
 // end bbcbot code
 
