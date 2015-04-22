@@ -96,7 +96,8 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	unsigned pid=netMessage.playerid();
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
 	std::string pname=pi1.playerName;
-	std::cout << "[002] Private Message from "<<pname<<": "<<netMessage.chattext()<<"\n"; 
+	std::cout << "[002] Private Message from "<<pname<<": "<<netMessage.chattext()<<"|\n"; 
+	// start old create code
 	if(client->bot.creategamestate==GS_NORMAL && (netMessage.chattext()=="create step1" || netMessage.chattext()=="create step 1"))
 	{
 		std::cout << "[101] create command from [id] "<< pid <<"\n";
@@ -165,11 +166,6 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 			cancreategame=false;
 			client->SendPrivateChatMessage(pid,"ERROR: i cannot open a game for you right now");
 		}
-		if(cancreategame&&(gname=="" || gname==" "))
-		{
-			cancreategame=false;
-			client->SendPrivateChatMessage(pid,"ERROR: game name not accepted");
-		}
 		if(cancreategame)
 		{
 			client->bot.creatorid=pid;
@@ -177,12 +173,70 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 			client->SendCreateGame(gd1, gname, "", false);
 		}
 	}
+	// end old create code
+	// start new create code
+	if(netMessage.chattext().substr(0,7)=="CREATE ")
+	{
+		std::cout << "[171] new create command 1";
+		bool syntaxerror=false,notfounderror=false,nopermissionerror=false;
+		bool er1=false,busyerror=false;
+		bbcbotgamedata*gd2=NULL;
+		bbcbotpermissiongroup*perm=NULL;
+		size_t secondspacepos=netMessage.chattext().find(" ",7);
+		string secondword="",customname="";
+		string gname="";
+		if(secondspacepos==string::npos || secondspacepos<8) er1=syntaxerror=true;
+		else secondword=netMessage.chattext().substr(7,secondspacepos-7);
+		//if(netMessage.chattext().legnth<secondspacepos+1
+		if(!syntaxerror) customname=netMessage.chattext().substr(secondspacepos+1); // TODO: test if throws exception if not proper substr
+		for(list<bbcbotgamedata>::iterator iter=client->bot.gdata.begin();iter!=client->bot.gdata.end();iter++)
+		{
+			if(iter->commandname==secondword)
+			{
+				gd2=&(*iter);
+				perm=gd2->pgroup;
+				gname=gd2->gamenameprefix+" "+customname;
+				break;
+			}
+		}
+		if(gd2==NULL) er1=notfounderror=true;
+		// start permission check
+		bool found=false;
+		for(list<string>::iterator iter=perm->players.begin();iter!=perm->players.end() && !er1;iter++)
+		{
+			if(*iter==pname)
+			{
+				found=true;
+				break;
+			}
+		}
+		if(!er1&&((found &&perm->isblacklist)||(!found&&!perm->isblacklist))) er1=nopermissionerror=true;
+		// end permission check
+		if(!er1 && client->bot.creategamestate!=GS_NORMAL) er1=busyerror=true;
+		std::cout << "[172] new create command 2";
+		if(!er1)
+		{
+			client->bot.creatorid=pid;
+			client->bot.creategamestate=GS_GOTCOMMAND;
+			client->SendCreateGame(gd2->gdata, gname, "", false);
+		}
+		else
+		{
+			string errorpm="";
+			if(syntaxerror) errorpm="ERROR: there was a syntax error in your command";
+			if(busyerror) errorpm="ERROR: i cannot open a game for you right now";
+			if(nopermissionerror) errorpm="ERROR: you have no permission to open this game";
+			if(notfounderror) errorpm="ERROR: no game settings were found for this game name";
+			client->SendPrivateChatMessage(pid,errorpm);
+		}
+	}
+	// end new create code
 	if(netMessage.chattext()=="uptime")
 	{
 		std::string number=int2string(client->bot.stdcount);
 		client->SendPrivateChatMessage(pid,"Uptime: "+number+" seconds (no precise time measurement, sry)");
 	}
-	if(pid=client->GetGuiPlayerId() && netMessage.chattext()=="caniwritemessagestomyself?")
+	if(pid==client->GetGuiPlayerId() && netMessage.chattext()=="caniwritemessagestomyself?")
 	{
 		// yeah, we are still able to get data !
 		ofstream connectionfile;
@@ -192,7 +246,6 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		connectionfile << now;
 		int downloaderreturnvalue=system("python downloader.py");
 		connectionfile.close();
-		// TODO: write time into file
 	}
 	return;
 }
