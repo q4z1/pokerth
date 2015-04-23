@@ -933,6 +933,57 @@ ClientThread::bot_every10min()
 	return;
 }
 
+void 
+ClientThread::bot_loadfiles()
+{
+	// delete old data:
+	bot.pgroups.clear();
+	bot.gdata.clear();
+	
+	// now read the files
+	
+	
+	// now comes the manual part - delete this in the future
+	bbcbotpermissiongroup pg1;
+	pg1.groupname="all";
+	bot.pgroups.push_back(pg1);
+	bbcbotgamedata d1;
+	d1.pgroup=&(*bot.pgroups.begin());
+	d1.commandname="step1";
+	d1.gamenameprefix="BBC Step 1";
+	GameData gd1;
+	gd1.gameType=GAME_TYPE_INVITE_ONLY;
+	gd1.maxNumberOfPlayers=10;
+	gd1.startMoney=3000;
+	gd1.firstSmallBlind=15;
+	gd1.raiseIntervalMode=RAISE_ON_MINUTES;
+	gd1.raiseSmallBlindEveryMinutesValue=5;
+	gd1.delayBetweenHandsSec=7;
+	gd1.playerActionTimeoutSec=10;
+	for(int i=1;i<101;i*=10)
+	{
+		gd1.manualBlindsList.push_back(20*i);
+		gd1.manualBlindsList.push_back(25*i);
+		gd1.manualBlindsList.push_back(30*i);
+		gd1.manualBlindsList.push_back(40*i);
+		gd1.manualBlindsList.push_back(50*i);
+		gd1.manualBlindsList.push_back(60*i);
+		gd1.manualBlindsList.push_back(80*i);
+		gd1.manualBlindsList.push_back(100*i);
+		gd1.manualBlindsList.push_back(120*i);
+		gd1.manualBlindsList.push_back(150*i);
+	}	
+	d1.gdata=gd1;
+	bot.gdata.push_back(d1);
+	d1.commandname="husc";
+	d1.gamenameprefix="HUSC";
+	gd1.maxNumberOfPlayers=2;
+	gd1.startMoney=1000;
+	gd1.raiseSmallBlindEveryMinutesValue=2;
+	d1.gdata=gd1;
+	bot.gdata.push_back(d1);
+	return;
+}
 
 void
 ClientThread::bot_invite()
@@ -974,7 +1025,7 @@ ClientThread::bbcbotTimerCallback(const boost::system::error_code& ec)
 	{
 		// std::cout << "[122] bbcbot timer fired \n";
 		bot.stdcount++;
-		if(bot.stdcount%600==60) bot_every10min();
+		if(bot.stdcount%600==15) bot_every10min();
 		if(bot.countdowninvitetimeout>0)
 		{
 			bot.countdowninvitetimeout--;

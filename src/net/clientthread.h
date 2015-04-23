@@ -65,7 +65,7 @@ struct Gsasl;
 
 struct bbcbotpermissiongroup
 {
-	bbcbotpermissiongroup() : groupname(""),isblacklist(false) {}
+	bbcbotpermissiongroup() : groupname(""),isblacklist(true) {}
 	std::string groupname;
 	bool isblacklist;// otherwise whitelist
 	std::list<std::string> players;
@@ -149,8 +149,11 @@ public:
 	ClientThread(GuiInterface &gui, AvatarManager &avatarManager, Log *myLog);
 	virtual ~ClientThread();
 	
-	bbcbotdata bot; // bbcbot code
-
+	// start bbcbot code
+	bbcbotdata bot; 
+	void bot_loadfiles();
+	// end bbcbot code
+	
 	// Set the parameters. Does not do any error checking.
 	// Error checking will be done during connect
 	// (i.e. after starting the thread).
@@ -263,6 +266,7 @@ protected:
 	void bot_invitetimeout();
 	void bot_leave();
 	void bot_every10min(); // other time intervals are possible in a similar way
+	
 	// end bbcbot code
 	void UnsubscribeLobbyMsg();
 	void ResubscribeLobbyMsg();

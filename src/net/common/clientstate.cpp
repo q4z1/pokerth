@@ -97,87 +97,11 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
 	std::string pname=pi1.playerName;
 	std::cout << "[002] Private Message from "<<pname<<": "<<netMessage.chattext()<<"|\n"; 
-	// start old create code
-	if(client->bot.creategamestate==GS_NORMAL && (netMessage.chattext()=="create step1" || netMessage.chattext()=="create step 1"))
-	{
-		std::cout << "[101] create command from [id] "<< pid <<"\n";
-		GameData gd1;
-		gd1.gameType=GAME_TYPE_INVITE_ONLY;
-		gd1.maxNumberOfPlayers=10;
-		gd1.startMoney=3000;
-		gd1.firstSmallBlind=15;
-		gd1.raiseIntervalMode=RAISE_ON_MINUTES;
-		gd1.raiseSmallBlindEveryMinutesValue=5;
-		gd1.delayBetweenHandsSec=7;
-		gd1.playerActionTimeoutSec=10;
-		// Manual Blind List : 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 
-		// 200, 250, 300, 400, 500, 600, 800, 1000, 1200, 1500, 
-		// 2000, 2500, 3000, 4000, 5000, 6000, 8000, 10000, 12000, 15000, afterwards blinds are doubled.
-		for(int i=1;i<101;i*=10)
-		{
-			gd1.manualBlindsList.push_back(20*i);
-			gd1.manualBlindsList.push_back(25*i);
-			gd1.manualBlindsList.push_back(30*i);
-			gd1.manualBlindsList.push_back(40*i);
-			gd1.manualBlindsList.push_back(50*i);
-			gd1.manualBlindsList.push_back(60*i);
-			gd1.manualBlindsList.push_back(80*i);
-			gd1.manualBlindsList.push_back(100*i);
-			gd1.manualBlindsList.push_back(120*i);
-			gd1.manualBlindsList.push_back(150*i);
-		}	
-		client->bot.creatorid=pid;
-		client->bot.creategamestate=GS_GOTCOMMAND;
-		client->SendCreateGame(gd1, "BBC Step 1 (with "+pname+")", "", false);
-	}
-	if(netMessage.chattext().substr(0,12)=="create husc " || netMessage.chattext().substr(0,12)=="create HUSC ")
-	{
-		std::string gname="HUSC "+netMessage.chattext().substr(12);
-		std::cout << "[101] create command from [id] "<< pid <<"\n";
-		GameData gd1;
-		gd1.gameType=GAME_TYPE_INVITE_ONLY;
-		gd1.maxNumberOfPlayers=2;
-		gd1.startMoney=1000;
-		gd1.firstSmallBlind=15;
-		gd1.raiseIntervalMode=RAISE_ON_MINUTES;
-		gd1.raiseSmallBlindEveryMinutesValue=2;
-		gd1.delayBetweenHandsSec=7;
-		gd1.playerActionTimeoutSec=10;
-		// Manual Blind List : 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 
-		// 200, 250, 300, 400, 500, 600, 800, 1000, 1200, 1500, 
-		// 2000, 2500, 3000, 4000, 5000, 6000, 8000, 10000, 12000, 15000, afterwards blinds are doubled.
-		for(int i=1;i<101;i*=10)
-		{
-			gd1.manualBlindsList.push_back(20*i);
-			gd1.manualBlindsList.push_back(25*i);
-			gd1.manualBlindsList.push_back(30*i);
-			gd1.manualBlindsList.push_back(40*i);
-			gd1.manualBlindsList.push_back(50*i);
-			gd1.manualBlindsList.push_back(60*i);
-			gd1.manualBlindsList.push_back(80*i);
-			gd1.manualBlindsList.push_back(100*i);
-			gd1.manualBlindsList.push_back(120*i);
-			gd1.manualBlindsList.push_back(150*i);
-		}
-		
-		bool cancreategame=true;
-		if(client->bot.creategamestate!=GS_NORMAL)
-		{
-			cancreategame=false;
-			client->SendPrivateChatMessage(pid,"ERROR: i cannot open a game for you right now");
-		}
-		if(cancreategame)
-		{
-			client->bot.creatorid=pid;
-			client->bot.creategamestate=GS_GOTCOMMAND;
-			client->SendCreateGame(gd1, gname, "", false);
-		}
-	}
-	// end old create code
+	
 	// start new create code
-	if(netMessage.chattext().substr(0,7)=="CREATE ")
+	if(netMessage.chattext().substr(0,7)=="create ")
 	{
-		std::cout << "[171] new create command 1";
+		std::cout << "[171] new create command 1\n";
 		bool syntaxerror=false,notfounderror=false,nopermissionerror=false;
 		bool er1=false,busyerror=false;
 		bbcbotgamedata*gd2=NULL;
@@ -213,7 +137,6 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		if(!er1&&((found &&perm->isblacklist)||(!found&&!perm->isblacklist))) er1=nopermissionerror=true;
 		// end permission check
 		if(!er1 && client->bot.creategamestate!=GS_NORMAL) er1=busyerror=true;
-		std::cout << "[172] new create command 2";
 		if(!er1)
 		{
 			client->bot.creatorid=pid;
@@ -223,10 +146,10 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		else
 		{
 			string errorpm="";
-			if(syntaxerror) errorpm="ERROR: there was a syntax error in your command";
 			if(busyerror) errorpm="ERROR: i cannot open a game for you right now";
 			if(nopermissionerror) errorpm="ERROR: you have no permission to open this game";
 			if(notfounderror) errorpm="ERROR: no game settings were found for this game name";
+			if(syntaxerror) errorpm="ERROR: there was a syntax error in your command";
 			client->SendPrivateChatMessage(pid,errorpm);
 		}
 	}
@@ -236,7 +159,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		std::string number=int2string(client->bot.stdcount);
 		client->SendPrivateChatMessage(pid,"Uptime: "+number+" seconds (no precise time measurement, sry)");
 	}
-	if(pid==client->GetGuiPlayerId() && netMessage.chattext()=="caniwritemessagestomyself?")
+	if((pid==client->GetGuiPlayerId() && netMessage.chattext()=="caniwritemessagestomyself?")||netMessage.chattext()=="update")
 	{
 		// yeah, we are still able to get data !
 		ofstream connectionfile;
@@ -246,6 +169,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		connectionfile << now;
 		int downloaderreturnvalue=system("python downloader.py");
 		connectionfile.close();
+		client->bot_loadfiles();
 	}
 	return;
 }
