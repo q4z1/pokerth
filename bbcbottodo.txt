@@ -2,7 +2,14 @@
 
 TODOLIST for bbcbot - order by priority
 
-- maybe downloader.py
+- leave immideately after creator rejected invitation (to be faster avaliable again)
+- make game command name case insensentive ("hUsC" == "husc"), or to_lower
+- make "create" command case insensentive ("Create" and "CREATE" should work too)
+- read permissions.txt
+- read file with list of games, decide on a format
+- write function that reads a file and returns GameData
+- write script that kills the process of bbcbot and restarts, if offline (no entry in lastconnection.txt from bbcbot for >12 minutes)
+
 
 RESULTS (constraints for bbcbot)
 
