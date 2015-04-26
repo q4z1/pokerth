@@ -941,12 +941,40 @@ ClientThread::bot_loadfiles()
 	bot.gdata.clear();
 	
 	// now read the files
+	ifstream permissionfile("botfiles/permissions.txt");
+	string line;
+	bbcbotpermissiongroup*pg2=NULL;
 	
-	
-	// now comes the manual part - delete this in the future
-	bbcbotpermissiongroup pg1;
+	while(getline(permissionfile,line))
+	{
+		if(line.length()<2) continue;
+		char c=line[0];
+		if(c=='#')
+		{
+			if(line.length()<4) continue;
+			char c2=line[2];
+			if(c2!='#') continue;
+			c2=line[1];
+			if(c2!='0' && c2!='1') continue;
+			bbcbotpermissiongroup pg3;
+			pg3.groupname=line.substr(3);
+			pg3.isblacklist=(c2=='1');
+			bot.pgroups.push_back(pg3);
+			pg2=&(*bot.pgroups.end());
+		}
+		if(c=='+')
+		{
+			if(pg2==NULL) continue;
+			pg2->players.push_back(line.substr(1));			
+		}
+	}
+	// end permission file
+
+
+	// now comes the manual part - delete this^ in the future
+	/*bbcbotpermissiongroup pg1;
 	pg1.groupname="all";
-	bot.pgroups.push_back(pg1);
+	bot.pgroups.push_back(pg1);*/
 	bbcbotgamedata d1;
 	d1.pgroup=&(*bot.pgroups.begin());
 	d1.commandname="step1";
