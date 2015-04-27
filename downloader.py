@@ -21,12 +21,12 @@ def makeemptyfile(fname):
 	return
 
 def downloadfile(url,local):
-	print "downloading file "+url+"..."
+	print "[python] downloading file "+url+"..."
 	response = urllib2.urlopen(url)
 	file1=open(local,"w")
 	file1.write(response.read())
 	file1.close()
-	print "...done"
+	print "[python] ...done"
 	return
 
 def checkhash2():
@@ -80,9 +80,7 @@ def checkhash1():
 	return
 
 try:
-	print "[python] welcome to the downloader script"
 	checkhash1()
-	print "[python] Done."
 except:
 	print "[python] Sorry, there was an error in the downloader"
 	# TODO: ...

@@ -82,6 +82,21 @@ std::string int2string(int a)
 	return ret;
 }
 
+bool ciscompare(string a,string b)
+{
+	//return true, if case insensentive equal
+	if(a.length()!=b.length()) return false;
+	char c1,c2;
+	for(unsigned i=0;i<a.length();i++)
+	{
+		c1=a[i];
+		c2=b[i];
+		if(c1==c2) continue; //most likely case: no difference
+		if((c1^c2)!=' ') return false;
+		if((c1<'A' || c1>'Z')&&(c2>'Z' || c2<'A')) return false;
+	}
+	return true;
+}
 
 void bot_lobbymessage(boost::shared_ptr<ClientThread> client,const ChatMessage &netMessage )
 {
@@ -99,7 +114,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	std::cout << "[002] Private Message from "<<pname<<": "<<netMessage.chattext()<<"|\n"; 
 	
 	// start new create code
-	if(netMessage.chattext().substr(0,7)=="create ")
+	if(ciscompare(netMessage.chattext().substr(0,7),"create "))
 	{
 		std::cout << "[171] new create command 1\n";
 		bool syntaxerror=false,notfounderror=false,nopermissionerror=false;
@@ -115,7 +130,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		if(!syntaxerror) customname=netMessage.chattext().substr(secondspacepos+1); // TODO: test if throws exception if not proper substr
 		for(list<bbcbotgamedata>::iterator iter=client->bot.gdata.begin();iter!=client->bot.gdata.end();iter++)
 		{
-			if(iter->commandname==secondword)
+			if(ciscompare(iter->commandname,secondword))
 			{
 				gd2=&(*iter);
 				perm=gd2->pgroup;
