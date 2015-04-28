@@ -98,13 +98,22 @@ bool ciscompare(string a,string b)
 	return true;
 }
 
-void bot_lobbymessage(boost::shared_ptr<ClientThread> client,const ChatMessage &netMessage )
+
+
+void bot_rejectinv(boost::shared_ptr<ClientThread> /*client*/,const RejectInvNotifyMessage /*&netRejNotify*/)
 {
-
 	// std::cout << "[001] Lobby Message\n";
-
+	// TODO: if this is my game, leave the game
 	return;
 }
+
+
+void bot_lobbymessage(boost::shared_ptr<ClientThread> /*client*/,const ChatMessage /*&netMessage*/ )
+{
+	// std::cout << "[001] Lobby Message\n";
+	return;
+}
+
 
 void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage &netMessage)
 {
@@ -182,7 +191,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		time_t now=time(NULL);
 		std::cout << "[117] we are still connected. UNIX Time: "<<now << " \n";
 		connectionfile << now;
-		int downloaderreturnvalue=system("python downloader.py");
+		/*int downloaderreturnvalue=*/system("python downloader.py");
 		connectionfile.close();
 		client->bot_loadfiles();
 	}
@@ -204,7 +213,7 @@ void bot_newgame(boost::shared_ptr<ClientThread> client,const GameListNewMessage
 	return;
 }
 
-void bot_gameupdate(boost::shared_ptr<ClientThread> client,const GameListUpdateMessage &netListUpdate)
+void bot_gameupdate(boost::shared_ptr<ClientThread> /*client*/,const GameListUpdateMessage /*&netListUpdate*/)
 {
 	// std::cout << "[004] A Game changed its status\n";
 	return;
@@ -225,7 +234,7 @@ void bot_playerjoin(boost::shared_ptr<ClientThread> client, const GameListPlayer
 	return;
 }
 
-void bot_playerleft(boost::shared_ptr<ClientThread> client,const GameListPlayerLeftMessage &netListLeft)
+void bot_playerleft(boost::shared_ptr<ClientThread> /*client*/,const GameListPlayerLeftMessage /*&netListLeft*/)
 {
 	// std::cout << "[006] A player left a game\n";
 	return;
@@ -1576,6 +1585,7 @@ ClientStateWaitGame::InternalHandlePacket(boost::shared_ptr<ClientThread> client
 			netRejNotify.gameid(),
 			netRejNotify.playerid(),
 			static_cast<DenyGameInvitationReason>(netRejNotify.playerrejectreason()));
+		bot_rejectinv(client,netRejNotify);
 	}
 }
 
