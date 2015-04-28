@@ -29,6 +29,8 @@
  * as that of the covered work.                                              *
  *****************************************************************************/
 
+#include <stdlib.h> // bbcbot code, need for strtol()
+
 #include <boost/asio.hpp>
 #include <net/socket_helper.h>
 #include <net/clientthread.h>
@@ -924,6 +926,63 @@ ClientThread::TimerCheckAvatarDownloads(const boost::system::error_code& ec)
 
 // bbcbot code start
 
+
+GameData bot_readgamesettings(string filename)
+{
+	/*
+	Remember: how to remove whitespaces from right
+	std::string s;
+	s.erase(s.find_last_not_of(" \n\r\t")+1);
+	*/
+	GameData ret;
+	ret.maxNumberOfPlayers=4; // stupid default value :)
+	ret.gameType=GAME_TYPE_INVITE_ONLY;//smart default value :)
+	
+	ifstream settingfile(filename.c_str());
+	string line,firstword="";
+	size_t equalpos=string::npos;
+	int value=0;
+	int listblindcount=0;
+	while(getline(settingfile,line))
+	{
+		line.erase(line.find_last_not_of(" \n\r\t")+1);
+		equalpos=line.find("=");
+		if(equalpos==string::npos) continue;
+		firstword=line.substr(0,equalpos);
+		firstword.erase(firstword.find_last_not_of(" \n\r\t")+1);
+		value=strtol(line.substr(equalpos+1).c_str(),NULL,10);
+		if(value<0) continue;
+		
+		if(firstword=="GameTypeNormal" && value==1) ret.gameType=GAME_TYPE_NORMAL;
+		else if(firstword=="GameTypeRegisteredOnly" && value==1) ret.gameType=GAME_TYPE_REGISTERED_ONLY;
+		else if(firstword=="GameTypeInviteOnly" && value==1) ret.gameType=GAME_TYPE_INVITE_ONLY;
+		else if(firstword=="GameTypeRanking" && value==1) ret.gameType=GAME_TYPE_RANKING;
+		else if(firstword=="NumberOfPlayers" && value>=2 && value<=10) ret.maxNumberOfPlayers=value;
+		else if(firstword== "StartCash") ret.startMoney=value;
+		else if(firstword=="FirstSmallBlind") ret.firstSmallBlind=value;
+		else if(firstword=="RaiseBlindsAtHands"&&value==1) ret.raiseIntervalMode=RAISE_ON_HANDNUMBER;
+		else if(firstword=="RaiseBlindsAtMinutes"&&value==1) ret.raiseIntervalMode=RAISE_ON_MINUTES;
+		else if(firstword=="RaiseSmallBlindEveryHands") ret.raiseSmallBlindEveryHandsValue=value; 
+		else if(firstword=="RaiseSmallBlindEveryMinutes") ret.raiseSmallBlindEveryMinutesValue=value; 
+		else if(firstword=="AlwaysDoubleBlinds" && value==1) ret.raiseMode=DOUBLE_BLINDS;
+		else if(firstword=="ManualBlindsOrder" && value==1) ret.raiseMode=MANUAL_BLINDS_ORDER;
+		else if(firstword=="AfterMBAlwaysDoubleBlinds" && value==1) ret.afterManualBlindsMode=AFTERMB_DOUBLE_BLINDS;
+		else if(firstword=="AfterMBAlwaysRaiseAbout" && value==1) ret.afterManualBlindsMode=AFTERMB_RAISE_ABOUT;
+		else if(firstword=="AfterMBAlwaysRaiseValue") ret.afterMBAlwaysRaiseValue=value;
+		else if(firstword=="AfterMBStayAtLastBlind" &&value==1) ret.afterManualBlindsMode=AFTERMB_STAY_AT_LAST_BLIND;
+		else if(firstword=="GameSpeed") ret.guiSpeed=value;
+		else if(firstword=="DelayBetweenHands") ret.delayBetweenHandsSec=value;
+		else if(firstword=="TimeOutPlayerAction") ret.playerActionTimeoutSec=value;
+		else if(firstword=="ListBlind") // only name that we invented
+		{
+			listblindcount++;
+			if(listblindcount>30) continue;
+			ret.manualBlindsList.push_back(value);
+		}
+	}
+	return ret;
+}
+
 void
 ClientThread::bot_every10min()
 {
@@ -1000,8 +1059,9 @@ ClientThread::bot_loadfiles()
 		gd1.manualBlindsList.push_back(100*i);
 		gd1.manualBlindsList.push_back(120*i);
 		gd1.manualBlindsList.push_back(150*i);
-	}	
+	}
 	d1.gdata=gd1;
+	d1.gdata=bot_readgamesettings("botfiles/step1_settings.txt");
 	bot.gdata.push_back(d1);
 	d1.commandname="husc";
 	d1.gamenameprefix="HUSC";
