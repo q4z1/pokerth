@@ -120,7 +120,8 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	unsigned pid=netMessage.playerid();
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
 	std::string pname=pi1.playerName;
-	std::cout << "[002] Private Message from "<<pname<<": "<<netMessage.chattext()<<"|\n"; 
+	time_t now=time(NULL);
+	std::cout << "[002] <Time="<< now<<">Private Message from "<<pname<<": "<<netMessage.chattext()<<"|\n"; 
 	
 	// start new create code
 	if(ciscompare(netMessage.chattext().substr(0,7),"create "))
@@ -188,8 +189,6 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		// yeah, we are still able to get data !
 		ofstream connectionfile;
 		connectionfile.open("lastconnection.txt");
-		time_t now=time(NULL);
-		std::cout << "[117] we are still connected. UNIX Time: "<<now << " \n";
 		connectionfile << now;
 		/*int downloaderreturnvalue=*/system("python downloader.py");
 		connectionfile.close();

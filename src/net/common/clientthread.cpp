@@ -1003,7 +1003,7 @@ ClientThread::bot_loadfiles()
 	ifstream permissionfile("botfiles/permissions.txt");
 	string line;
 	bbcbotpermissiongroup*pg2=NULL;
-	
+	bbcbotpermissiongroup pg3;
 	while(getline(permissionfile,line))
 	{
 		if(line.length()<2) continue;
@@ -1015,25 +1015,56 @@ ClientThread::bot_loadfiles()
 			if(c2!='#') continue;
 			c2=line[1];
 			if(c2!='0' && c2!='1') continue;
-			bbcbotpermissiongroup pg3;
 			pg3.groupname=line.substr(3);
 			pg3.isblacklist=(c2=='1');
 			bot.pgroups.push_back(pg3);
-			pg2=&(*bot.pgroups.end());
+			pg2=&bot.pgroups.back();
 		}
 		if(c=='+')
 		{
 			if(pg2==NULL) continue;
 			pg2->players.push_back(line.substr(1));			
+			//bbcbotpermissiongroup pg3 = (bot.pgroups.end;
 		}
 	}
 	// end permission file
 
+	// start reading gameslist.txt
+	
+	ifstream gameslistfile("botfiles/gameslist.txt");
+	size_t pos1,pos2=string::npos;
+	string perm;
+	bbcbotgamedata d2;
+	while(getline(gameslistfile,line))
+	{
+		if(line[0]!='#') continue;
+		pos1=line.find("#",1);
+		if(pos1==string::npos) continue;
+		d2.commandname=line.substr(1,pos1-1);
+		pos2=line.find("#",pos1+1);
+		if(pos2==string::npos) continue;
+		perm=line.substr(pos1+1,pos2-pos1-1);
+		pos1=line.find("#",pos2+1);
+		if(pos1==string::npos) continue;
+		d2.gamenameprefix=line.substr(pos2+1,pos1-pos2-1);
+		// search for pgroup
+		for(list<bbcbotpermissiongroup>::iterator iter=bot.pgroups.begin();iter!=bot.pgroups.end();iter++)
+		{
+			if(iter->groupname==perm)
+			{
+				d2.pgroup=&(*iter);
+				d2.gdata=bot_readgamesettings("botfiles/"+d2.commandname+"_settings.txt");
+				bot.gdata.push_back(d2);
+				break;
+			}
+		}
+	}
 
 	// now comes the manual part - delete this^ in the future
 	/*bbcbotpermissiongroup pg1;
 	pg1.groupname="all";
 	bot.pgroups.push_back(pg1);*/
+	/*
 	bbcbotgamedata d1;
 	d1.pgroup=&(*bot.pgroups.begin());
 	d1.commandname="step1";
@@ -1070,6 +1101,7 @@ ClientThread::bot_loadfiles()
 	gd1.raiseSmallBlindEveryMinutesValue=2;
 	d1.gdata=gd1;
 	bot.gdata.push_back(d1);
+	*/
 	return;
 }
 
