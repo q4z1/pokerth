@@ -986,9 +986,8 @@ GameData bot_readgamesettings(string filename)
 void
 ClientThread::bot_every10min()
 {
-	// std::cout << "[204] every 10 minutes \n";
 	SendResetTimeout();
-	SendPrivateChatMessage(GetGuiPlayerId(),"caniwritemessagestomyself?");
+	SendPrivateChatMessage(GetGuiPlayerId(),"update");
 	return;
 }
 
@@ -1111,7 +1110,7 @@ ClientThread::bot_invite()
 	if(bot.creategamestate != GS_CREATED) return;
 	SendInvitePlayerToCurrentGame(bot.creatorid);
 	bot.creategamestate=GS_SENDINV;
-	std::cout << "[201] invitation send to creator [id="<<bot.creatorid<<"]\n";
+	//std::cout << "[201] invitation send to creator [id="<<bot.creatorid<<"]\n";
 
 }
 void
@@ -1143,7 +1142,6 @@ ClientThread::bbcbotTimerCallback(const boost::system::error_code& ec)
 {
 	if(!ec)
 	{
-		// std::cout << "[122] bbcbot timer fired \n";
 		bot.stdcount++;
 		if(bot.stdcount%600==15) bot_every10min();
 		if(bot.countdowninvitetimeout>0)
@@ -1175,7 +1173,6 @@ ClientThread::bbcbotTimerCallback(const boost::system::error_code& ec)
 void
 ClientThread::UnsubscribeLobbyMsg()
 {
-	std::cout << "[301] UnsubscribeLobbyMsg()\n";
 	if (GetContext().GetSubscribeLobbyMsg()) {
 		// Send unsubscribe request.
 		boost::shared_ptr<NetPacket> packet(new NetPacket);
@@ -1190,7 +1187,6 @@ ClientThread::UnsubscribeLobbyMsg()
 void
 ClientThread::ResubscribeLobbyMsg()
 {
-	std::cout << "[302] ResubscribeLobbyMsg()\n";
 	if (!GetContext().GetSubscribeLobbyMsg()) {
 		// Clear game info map as it is outdated.
 		ClearGameInfoMap();

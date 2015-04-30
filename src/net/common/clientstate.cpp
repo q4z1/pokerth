@@ -100,10 +100,14 @@ bool ciscompare(string a,string b)
 
 
 
-void bot_rejectinv(boost::shared_ptr<ClientThread> /*client*/,const RejectInvNotifyMessage /*&netRejNotify*/)
+void bot_rejectinv(boost::shared_ptr<ClientThread> client,const RejectInvNotifyMessage &netRejNotify)
 {
-	// std::cout << "[001] Lobby Message\n";
 	// TODO: if this is my game, leave the game
+	if(client->bot.creategamestate!=GS_SENDINV) return;
+	if(netRejNotify.gameid()!=client->GetGameId()) return;
+	if(netRejNotify.playerid()!=client->bot.creatorid) return;
+	client->SendLeaveCurrentGame();
+	cout <<"[015] Leave game because of invitation denied\n";
 	return;
 }
 
@@ -184,7 +188,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		std::string number=int2string(client->bot.stdcount);
 		client->SendPrivateChatMessage(pid,"Uptime: "+number+" seconds (no precise time measurement, sry)");
 	}
-	if((pid==client->GetGuiPlayerId() && netMessage.chattext()=="caniwritemessagestomyself?")||netMessage.chattext()=="update")
+	if(netMessage.chattext()=="update")
 	{
 		// yeah, we are still able to get data !
 		ofstream connectionfile;
@@ -199,7 +203,6 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 
 void bot_newgame(boost::shared_ptr<ClientThread> client,const GameListNewMessage &netListNew)
 {
-	//std::cout << "[003] New Game created\n";
 	unsigned adminpid=netListNew.adminplayerid();
 	if(adminpid==client->GetGuiPlayerId() && client->bot.creategamestate==GS_GOTCOMMAND)
 	{
@@ -214,13 +217,11 @@ void bot_newgame(boost::shared_ptr<ClientThread> client,const GameListNewMessage
 
 void bot_gameupdate(boost::shared_ptr<ClientThread> /*client*/,const GameListUpdateMessage /*&netListUpdate*/)
 {
-	// std::cout << "[004] A Game changed its status\n";
 	return;
 }
 
 void bot_playerjoin(boost::shared_ptr<ClientThread> client, const GameListPlayerJoinedMessage &netListJoined)
 {	
-	// std::cout << "[005] A Player joined a game\n";
 	unsigned gameid=netListJoined.gameid();
 	unsigned playerid=netListJoined.playerid();
 	if(playerid==client->bot.creatorid && gameid==client->GetGameId() && client->bot.creategamestate==GS_SENDINV)
@@ -235,7 +236,6 @@ void bot_playerjoin(boost::shared_ptr<ClientThread> client, const GameListPlayer
 
 void bot_playerleft(boost::shared_ptr<ClientThread> /*client*/,const GameListPlayerLeftMessage /*&netListLeft*/)
 {
-	// std::cout << "[006] A player left a game\n";
 	return;
 }
 
