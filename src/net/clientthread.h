@@ -105,6 +105,8 @@ struct bbcbotdata
 	int stdcount;
 	std::list<bbcbotpermissiongroup> pgroups;
 	std::list<bbcbotgamedata> gdata;
+	std::vector<std::string> fixedcommands;
+	std::vector<std::string> fixedreply;
 };
 // end bbcbot code
 

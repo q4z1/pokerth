@@ -98,6 +98,69 @@ bool ciscompare(string a,string b)
 	return true;
 }
 
+string bot_fixedcommandssearch(boost::shared_ptr<ClientThread> client,const string &msg)
+{
+	size_t pos1,pos2,pos3;
+	pos1=0;
+	bbcbotdata*bot=&(client->bot);
+	pos2=bot->fixedcommands.size();
+	int i=0,j=(int)pos2,c;
+	for(i=0;i<j;i++)
+	{
+		if(pos2<=pos1) break;
+		// msg < pos2, msg>=pos1
+		pos3=(pos2+pos1)/2;
+		c=msg.compare(bot->fixedcommands[pos3]);
+		if(c==0) return bot->fixedreply[pos3];
+		if(c<0)
+		{
+			pos2=pos3;
+		}
+		if(c>0)
+		{
+			pos1=pos3+1;
+		}
+	}
+	return "ERROR: not found. try \"help\"";
+}
+
+
+void bot_sendlongpm(boost::shared_ptr<ClientThread> client, const unsigned playerid,const std::string msg)
+{
+	size_t msglen=msg.length();
+	if(msglen<128) 
+	{
+		client->SendPrivateChatMessage(playerid,msg);
+		return;
+	}
+	//string*msgs=new string[10];
+	size_t*pos=new size_t[11];
+	pos[0]=0;
+	int i,j;
+	for(i=0;i<10;i++)
+	{
+		if(pos[i]+120<msglen) 
+		{
+			pos[i+1]=msg.rfind(' ',pos[i]+120);
+			if(pos[i+1]==string::npos || pos[i+1]==pos[i]) pos[i+1]=pos[i]+120;
+		}
+		else 
+		{
+			pos[i+1]=msglen-1;
+			break;
+		}
+	}
+	string tmp1="/"+int2string(i+1)+"] ";
+	for(j=1;j<=i+1 && i<9;j++)
+	{
+		client->SendPrivateChatMessage(playerid,"["+int2string(j)+tmp1+msg.substr(pos[j-1]+1,pos[j]-pos[j-1]));
+	}
+	delete[] pos;
+	//delete[] msgs;
+	return;
+}
+
+
 
 
 void bot_rejectinv(boost::shared_ptr<ClientThread> client,const RejectInvNotifyMessage &netRejNotify)
@@ -183,12 +246,22 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		}
 	}
 	// end new create code
-	if(netMessage.chattext()=="uptime")
+	else if(netMessage.chattext()=="debug")
+	{
+		string testmsg="";
+		for(int i=0;i<194;i++)
+		{
+			testmsg+=int2string(i)+" ";
+		}
+		bot_sendlongpm(client,pid,testmsg);
+		
+	}
+	else if(netMessage.chattext()=="uptime")
 	{
 		std::string number=int2string(client->bot.stdcount);
 		client->SendPrivateChatMessage(pid,"Uptime: "+number+" seconds (no precise time measurement, sry)");
 	}
-	if(netMessage.chattext()=="update")
+	else if(netMessage.chattext()=="update")
 	{
 		// yeah, we are still able to get data !
 		ofstream connectionfile;
@@ -197,6 +270,10 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		/*int downloaderreturnvalue=*/system("python downloader.py");
 		connectionfile.close();
 		client->bot_loadfiles();
+	}
+	else 
+	{
+		bot_sendlongpm(client,pid,bot_fixedcommandssearch(client,netMessage.chattext()));
 	}
 	return;
 }

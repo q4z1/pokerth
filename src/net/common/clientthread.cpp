@@ -997,6 +997,8 @@ ClientThread::bot_loadfiles()
 	// delete old data:
 	bot.pgroups.clear();
 	bot.gdata.clear();
+	bot.fixedcommands.clear();
+	bot.fixedreply.clear();
 	
 	// now read the files
 	ifstream permissionfile("botfiles/permissions.txt");
@@ -1029,7 +1031,6 @@ ClientThread::bot_loadfiles()
 	// end permission file
 
 	// start reading gameslist.txt
-	
 	ifstream gameslistfile("botfiles/gameslist.txt");
 	size_t pos1,pos2=string::npos;
 	string perm;
@@ -1058,49 +1059,24 @@ ClientThread::bot_loadfiles()
 			}
 		}
 	}
-
-	// now comes the manual part - delete this^ in the future
-	/*bbcbotpermissiongroup pg1;
-	pg1.groupname="all";
-	bot.pgroups.push_back(pg1);*/
-	/*
-	bbcbotgamedata d1;
-	d1.pgroup=&(*bot.pgroups.begin());
-	d1.commandname="step1";
-	d1.gamenameprefix="BBC Step 1";
-	GameData gd1;
-	gd1.gameType=GAME_TYPE_INVITE_ONLY;
-	gd1.maxNumberOfPlayers=10;
-	gd1.startMoney=3000;
-	gd1.firstSmallBlind=15;
-	gd1.raiseIntervalMode=RAISE_ON_MINUTES;
-	gd1.raiseSmallBlindEveryMinutesValue=5;
-	gd1.delayBetweenHandsSec=7;
-	gd1.playerActionTimeoutSec=10;
-	for(int i=1;i<101;i*=10)
+	// end permissions.txt
+	
+	// start reading fixedcommands.txt
+	ifstream fixedcommandsfile("botfiles/fixedcommands.txt");
+	
+	bool issorted=true;
+	size_t vectorlen=0;
+	while(getline(fixedcommandsfile,line))
 	{
-		gd1.manualBlindsList.push_back(20*i);
-		gd1.manualBlindsList.push_back(25*i);
-		gd1.manualBlindsList.push_back(30*i);
-		gd1.manualBlindsList.push_back(40*i);
-		gd1.manualBlindsList.push_back(50*i);
-		gd1.manualBlindsList.push_back(60*i);
-		gd1.manualBlindsList.push_back(80*i);
-		gd1.manualBlindsList.push_back(100*i);
-		gd1.manualBlindsList.push_back(120*i);
-		gd1.manualBlindsList.push_back(150*i);
+		pos1=line.find("\t",1);
+		if(pos1==string::npos) continue;
+		bot.fixedcommands.push_back(line.substr(0,pos1));
+		bot.fixedreply.push_back(line.substr(pos1+1));
+		vectorlen=bot.fixedcommands.size();
+		if(vectorlen>1 && bot.fixedcommands[vectorlen-1].compare(bot.fixedcommands[vectorlen-2])<0) issorted=false;
 	}
-	d1.gdata=gd1;
-	d1.gdata=bot_readgamesettings("botfiles/step1_settings.txt");
-	bot.gdata.push_back(d1);
-	d1.commandname="husc";
-	d1.gamenameprefix="HUSC";
-	gd1.maxNumberOfPlayers=2;
-	gd1.startMoney=1000;
-	gd1.raiseSmallBlindEveryMinutesValue=2;
-	d1.gdata=gd1;
-	bot.gdata.push_back(d1);
-	*/
+	if(!issorted) cout << "[016] ERROR: fixedcommands.txt is not sortet! :( \n";
+	// end fixedcommands.txt
 	return;
 }
 
