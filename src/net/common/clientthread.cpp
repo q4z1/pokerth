@@ -568,6 +568,7 @@ ClientThread::Main()
 			remove(tmpServerListPath);
 		}
 		GetCallback().SignalNetClientError(e.GetErrorId(), e.GetOsErrorCode());
+		std::cout << "[305] After Error signal\n";
 	}
 	// Close the socket.
 	boost::system::error_code ec;

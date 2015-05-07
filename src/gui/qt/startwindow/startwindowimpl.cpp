@@ -399,7 +399,7 @@ void startWindowImpl::startNewLocalGame(newGameDialogImpl *v)
 
 void startWindowImpl::callGameLobbyDialog()
 {
-	std::cout<<"[243] startWindowImpl::callGameLobbyDialog()\n";
+	std::cout<<"[243] startWindowImpl::callGameLobbyDialog()\n"; // bbcbot code
 	//Avoid join Lobby with "Human Player" nick
 	if(QString::fromUtf8(myConfig->readConfigString("MyName").c_str()) == QString("Human Player")) {
 		changeContentDialogImpl dialog(this, myConfig, CHANGE_HUMAN_PLAYER_NAME);
@@ -414,7 +414,7 @@ void startWindowImpl::callGameLobbyDialog()
 
 void startWindowImpl::joinGameLobby()
 {
-	std::cout<<"[244] startWindowImpl::joinGameLobby()\n";
+	std::cout<<"[244] startWindowImpl::joinGameLobby()\n"; // bbcbot code
 	// Stop local game.
 	myGuiInterface->getMyW()->stopTimer();
 
@@ -448,8 +448,6 @@ void startWindowImpl::joinGameLobby()
 
 void startWindowImpl::callInternetGameLoginDialog()
 {
-	std::cout << "[251] startWindowImpl::callInternetGameLoginDialog()\n";
-
 	//login
 
 	//HACK if Outdated Version info is available show it here!
@@ -459,7 +457,7 @@ void startWindowImpl::callInternetGameLoginDialog()
 		msgBoxOutdatedVersion.raise();
 		msgBoxOutdatedVersion.activateWindow();
 	}
-	
+	// start bbcbot code
 	std::cout << "[252] startWindowImpl::callInternetGameLoginDialog() before exec()\n";
 	
 	/*myInternetGameLoginDialog->exec();*/ // TODO: test :(
@@ -468,7 +466,7 @@ void startWindowImpl::callInternetGameLoginDialog()
 		//send login infos
 		std::cout << "[253] startWindowImpl::callInternetGameLoginDialog() before mySession->setLogin()\n";
 		mySession->setLogin(
-			/*myConfig->readConfigString("MyName")*/"bbcbot",
+			/*myConfig->readConfigString("MyName")*/"bbcbot", // or bbcbot2 
 			/*myInternetGameLoginDialog->lineEdit_password->text().toUtf8().constData()*/ mySession->bbcbotpassword,
 			/*myInternetGameLoginDialog->checkBox_guest->isChecked()*/false);
 	/*} else {
@@ -937,9 +935,12 @@ void startWindowImpl::networkError(int errorID, int /*osErrorID*/)
 	break;
 	case ERR_NET_PLAYER_KICKED: {
 		mySession->terminateNetworkClient();
+		/*
 		MyMessageBox::warning(this, tr("Network Error"),
 							  tr("You were kicked from the server."),
 							  QMessageBox::Close);
+		*/
+		std::cout << "[322] Player Kicked Message Box Error \n"; // bbcbot code
 	}
 	break;
 	case ERR_NET_PLAYER_BANNED: {
@@ -958,9 +959,11 @@ void startWindowImpl::networkError(int errorID, int /*osErrorID*/)
 	break;
 	case ERR_NET_SESSION_TIMED_OUT: {
 		mySession->terminateNetworkClient();
-		MyMessageBox::warning(this, tr("Network Error"),
+		/*MyMessageBox::warning(this, tr("Network Error"),
 							  tr("Your server connection timed out due to inactivity. You are very welcome to reconnect!"),
 							  QMessageBox::Close);
+		*/
+		std::cout << "[324] TIMEOUT message box error \n\n\n[324] (this should happen every 24 hours)\n";
 	}
 	break;
 	case ERR_NET_INVALID_PLAYER_COUNT: {
@@ -1024,7 +1027,8 @@ void startWindowImpl::networkError(int errorID, int /*osErrorID*/)
 	myStartNetworkGameDialog->reject();
 	myGuiInterface->getMyW()->close();
 	myInternetGameLoginDialog->reject();
-
+	std::cout << "[323] After Closing stuff\n"; // bbcbot code
+	//joinGameLobby(); //bbcbot code - TODO - gives a warning "recursive call detected
 }
 
 void startWindowImpl::networkNotification(int notificationId)

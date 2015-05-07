@@ -265,7 +265,11 @@ int main( int argc, char **argv )
 #ifdef ANDROID
 	mainWin.show();
 #else
+	std::cout << "[131] in main(), before mainWin.joinGameLobby()\n";
 	mainWin.joinGameLobby(); // bbcbot code, looks like it works
+	std::cout << "[132] in main(), after mainWin.joinGameLobby()\n";
+	// TODO: sleep 30 seconds here
+	mainWin.joinGameLobby(); // bbcbot code, i hope that works :D
 	// mainWin.showLobbyDialog();
 	a.setActivationWindow(&mainWin, true);
 	

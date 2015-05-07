@@ -8,7 +8,7 @@ After a Private Message from Player X with text "create", "create step 1", or "c
 
 
 
-GOAL 2
+GOAL 2 : done
 ------
 
 Create different type of games (step1-step4, monthly cup, heads-up) on command, load type of games and game settings from bbc website, only allow bbc admins to create games (depending on type).
