@@ -265,12 +265,19 @@ int main( int argc, char **argv )
 #ifdef ANDROID
 	mainWin.show();
 #else
+	// start bbcbot code
 	std::cout << "[131] in main(), before mainWin.joinGameLobby()\n";
-	mainWin.joinGameLobby(); // bbcbot code, looks like it works
-	std::cout << "[132] in main(), after mainWin.joinGameLobby()\n";
-	// TODO: sleep 30 seconds here
-	mainWin.joinGameLobby(); // bbcbot code, i hope that works :D
+	mainWin.joinGameLobby(); 
 	// mainWin.showLobbyDialog();
+	boost::asio::io_service io;
+	for(int i1=0;i1<121;i1++)
+	{
+		boost::asio::deadline_timer t(io, boost::posix_time::seconds(15));
+		cout << "[133] now sleep for 15 seconds and try again\n";
+		t.wait();
+		mainWin.joinGameLobby(); 
+	}
+	// end bbcbot code
 	a.setActivationWindow(&mainWin, true);
 	
 	

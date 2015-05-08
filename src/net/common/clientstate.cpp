@@ -271,7 +271,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		connectionfile.close();
 		client->bot_loadfiles();
 	}
-	else 
+	else if(pname!="bbcbot" && pname!="bbcbot2")
 	{
 		bot_sendlongpm(client,pid,bot_fixedcommandssearch(client,netMessage.chattext()));
 	}
