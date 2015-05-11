@@ -47,6 +47,7 @@
 #include <playerdata.h>
 #include <gamedata.h>
 
+class ClientThread;
 class ClientContext;
 class ClientState;
 class SenderHelper;
@@ -62,6 +63,41 @@ struct Gsasl;
 
 // start bbcbot code
 
+class bbcbotplayerdb
+{
+public:
+	bbcbotplayerdb(ClientThread*p);
+	~bbcbotplayerdb();
+	//void setparent(ClientThread*p);
+	void clear();
+	bool loadfile(std::string filename);
+	std::string printsuggest(int step);
+	std::string printsuggest(int step,int limit);
+	std::string printtickets(std::string name);
+	std::string printrating(std::string name);
+	std::string printgamescount(std::string name);
+	void removeidleplayer(unsigned pid);
+	void addidleplayer(unsigned pid);
+	void printidledebug();
+private:
+	ClientThread*parent;
+	bool issorted;
+	size_t size;
+	bool checkcontent(); // sets "issorted"
+	bool loadline(std::string line);
+	std::vector<std::string> pname;
+	std::vector<int> ts2;
+	std::vector<int> ts3;
+	std::vector<int> ts4;
+	std::vector<int> games;
+	std::vector<int> rating;
+	unsigned*idleplayers; // list
+	unsigned debuglongestsearch;
+	int suggestionscore2(int rating,int tickets,int games);
+	int suggestionscore1(int index,int step);
+	int getindex(std::string name); // -1 means not found
+	std::string int2string(int a);
+};
 
 struct bbcbotpermissiongroup
 {
@@ -153,8 +189,11 @@ public:
 	
 	// start bbcbot code
 	bbcbotdata bot; 
+	bbcbotplayerdb botdb;
 	void bot_loadfiles();
+	std::string GetPlayerName(unsigned id); // just make it public
 	// end bbcbot code
+	
 	
 	// Set the parameters. Does not do any error checking.
 	// Error checking will be done during connect
@@ -253,7 +292,7 @@ protected:
 	void SetUnknownPlayer(unsigned id);
 	void SetNewGameAdmin(unsigned id);
 	void RetrieveAvatarIfNeeded(unsigned id, const PlayerInfo &info);
-	std::string GetPlayerName(unsigned id);
+	
 
 	void AddTempAvatarFile(unsigned playerId, unsigned avatarSize, AvatarFileType type);
 	void StoreInTempAvatarFile(unsigned playerId, const std::vector<unsigned char> &data);
@@ -268,7 +307,6 @@ protected:
 	void bot_invitetimeout();
 	void bot_leave();
 	void bot_every10min(); // other time intervals are possible in a similar way
-	
 	// end bbcbot code
 	void UnsubscribeLobbyMsg();
 	void ResubscribeLobbyMsg();

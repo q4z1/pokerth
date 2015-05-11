@@ -69,7 +69,7 @@ using namespace boost::filesystem;
 using boost::asio::ip::tcp;
 
 ClientThread::ClientThread(GuiInterface &gui, AvatarManager &avatarManager, Log *myLog)
-	: m_ioService(new boost::asio::io_service), m_clientLog(myLog), m_curState(NULL), m_gui(gui),
+	: botdb(this),m_ioService(new boost::asio::io_service), m_clientLog(myLog), m_curState(NULL), m_gui(gui),
 	  m_avatarManager(avatarManager), m_isServerSelected(false),
 	  m_curGameId(0), m_curGameNum(1), m_guiPlayerId(0), m_sessionEstablished(false),
 	  m_stateTimer(*m_ioService), m_avatarTimer(*m_ioService), m_bbcbotTimer(*m_ioService)
@@ -928,6 +928,304 @@ ClientThread::TimerCheckAvatarDownloads(const boost::system::error_code& ec)
 // bbcbot code start
 
 
+bbcbotplayerdb::bbcbotplayerdb(ClientThread*p)
+{
+	issorted=true;
+	idleplayers=new unsigned[512]();
+	size=0;
+	parent=p;
+}
+bbcbotplayerdb::~bbcbotplayerdb()
+{
+	delete[] idleplayers;
+}
+void bbcbotplayerdb::clear()
+{
+	pname.clear();
+	ts2.clear();
+	ts3.clear();
+	ts4.clear();
+	games.clear();
+	rating.clear();
+	size=0;
+	
+	//for(int i=0;i<512;i++) idleplayers[i]=0; ooopsie :D
+	issorted=true;
+	return;
+}
+
+bool bbcbotplayerdb::loadfile(std::string filename)
+{
+	ifstream permissionfile(filename.c_str());// filename="botfiles/minidb.txt" maybe
+	string line;
+	while(getline(permissionfile,line))
+	{
+		loadline(line); //cout<<"[333] Error reading line:"<<line<<"\n";
+	}
+	return checkcontent();
+}
+
+
+std::string bbcbotplayerdb::int2string(int a)
+{
+	char*buffer=new char[16];
+	sprintf(buffer,"%d",a);
+	string ret=string(buffer);
+	delete[] buffer;
+	return ret;
+}
+
+
+std::string bbcbotplayerdb::printsuggest(int step)
+{
+	// default limit is 8
+	return printsuggest(step,8);
+}
+std::string bbcbotplayerdb::printsuggest(int step,int limit)
+{
+	vector<int> sindex;
+	vector<int> sscore;
+	
+	string tempname="";
+	int tempindex=-1;
+	int tempscore=0;
+	vector<int>::iterator it1,it2,it3;
+	for(int i=0;i<512;i++)
+	{
+		if(idleplayers[i]==0) continue;
+		if(parent->GetGameIdOfPlayer(idleplayers[i])) continue;
+		tempname=parent->GetPlayerName(idleplayers[i]);
+		if(tempname.substr(0,5)=="Guest") continue;
+		tempindex=getindex(tempname);
+		if(tempindex==-1) continue;
+		tempscore=suggestionscore1(tempindex,step);
+		//cout << "[318] checking player "<<tempname<<"with suggestscore
+		if(tempscore<=10) continue;
+		it1=sindex.begin();
+		it2=sindex.end();
+		it3=sscore.begin();
+		while(it1!=it2)
+		{
+			if(tempscore >= *it3) 
+			{
+				sindex.insert(it1,tempindex);
+				sscore.insert(it3,tempscore);
+				break;
+			}
+			it1++;
+			it3++;
+		}
+		if(it1==it2)
+		{
+			sindex.push_back(tempindex);
+			sscore.push_back(tempscore);
+		}
+	}
+	if(sindex.size()==0) return "Sorry, no player found to suggest";
+	tempname="I suggest the following players for step "+int2string(step)+": ";
+	for(int i=0;i<sindex.size() && i<limit; i++)
+	{
+		if(i!=0) tempname+=", ";
+		tempname+=pname[sindex[i]];
+	}
+	return tempname;
+}
+
+std::string bbcbotplayerdb::printtickets(std::string name)
+{
+	int i=getindex(name);
+	if(i==-1) return "ERROR: player "+name+" not found";
+	string retval=name+" has ";
+	if(ts2[i]==1) retval+= "1 ticket";
+	else if(ts2[i]==0) retval+="no ticket";
+	else retval+= int2string(ts2[i])+" tickets";
+	retval+=" for step 2, ";
+	if(ts3[i]==1) retval+= "1 ticket";
+	else if(ts3[i]==0) retval+="no ticket";
+	else retval+= int2string(ts3[i])+" tickets";
+	retval+=" for step 3, and ";
+	if(ts4[i]==1) retval+= "1 ticket";
+	else if(ts4[i]==0) retval+="no ticket";
+	else retval+= int2string(ts4[i])+" tickets";
+	retval+=" for step 4.";
+	return retval;
+}
+std::string bbcbotplayerdb::printrating(std::string name)
+{
+	int i=getindex(name);
+	if(i==-1) return "ERROR: player "+name+" not found";
+	return name+" has "+int2string(rating[i])+" rating points";
+}
+std::string bbcbotplayerdb::printgamescount(std::string name)
+{
+	int i=getindex(name);
+	if(i==-1) return "ERROR: player "+name+" not found";
+	return name+" has played "+int2string(games[i])+" BBC games";
+}
+bool
+bbcbotplayerdb::checkcontent()
+{
+	bool sizecheck=(size==pname.size() && size==ts2.size() && size==ts3.size() && size==ts4.size() && size==games.size() && size==rating.size());
+	if(!sizecheck) clear();
+	if(!sizecheck) return false;
+	issorted=true;
+	for(size_t i=1;i<size;i++)
+	{
+		if(pname[i-1].compare(pname[i])<0) continue;
+		cout << "[314] ERROR: file database not sorted\n";
+		issorted=false;
+		return true;
+	}
+	return true;
+}
+bool 
+bbcbotplayerdb::loadline(std::string line)
+{
+	//bool success=true;
+	size_t pos1,pos2=0;
+	int*data1=new int[8];
+	string tempname;
+	pos1=line.find('\t',0);
+	if(pos1==string::npos) return false;
+	tempname=line.substr(0,pos1);
+	pos2=line.find('\t',pos1+1);
+	if(pos2==string::npos) return false;
+	data1[1]=strtol(line.substr(pos1+1,pos2-pos1-1).c_str(),NULL,10);
+	pos1=line.find('\t',pos2+1);
+	if(pos1==string::npos) return false;
+	data1[2]=strtol(line.substr(pos2+1,pos1-pos2-1).c_str(),NULL,10);
+	pos2=line.find('\t',pos1+1);
+	if(pos2==string::npos) return false;
+	data1[3]=strtol(line.substr(pos1+1,pos2-pos1-1).c_str(),NULL,10);
+	pos1=line.find('\t',pos2+1);
+	if(pos1==string::npos) return false;
+	data1[4]=strtol(line.substr(pos2+1,pos1-pos2-1).c_str(),NULL,10);
+	data1[5]=strtol(line.substr(pos1+1).c_str(),NULL,10);
+	
+	// NOTE: for the future, read more stuff here
+	//if(data1[5]<=0 or data1[4]<=0) cout << "("<<data1[4]<<data1[5]<<")";
+	if(data1[4]<=0) return false;
+	pname.push_back(tempname);
+	ts2.push_back(data1[1]);
+	ts3.push_back(data1[2]);
+	ts4.push_back(data1[3]);
+	rating.push_back(data1[4]);
+	games.push_back(data1[5]);
+	size++;
+	delete[] data1;
+	return true;
+}
+int 
+bbcbotplayerdb::suggestionscore2(int ratingpoints,int tickets,int gamescount)
+{
+	if(tickets<=0) return 0;
+	return (tickets<<11)+(gamescount<<4)+ratingpoints;
+}
+int
+bbcbotplayerdb::suggestionscore1(int index,int step)
+{
+	if(index==-1) return 0;
+	if(step==1) return suggestionscore2(rating[index],1,games[index]);
+	if(step==2) return suggestionscore2(rating[index],ts2[index],games[index]);
+	if(step==3) return suggestionscore2(rating[index],ts3[index],games[index]);
+	if(step==4) return suggestionscore2(rating[index],ts4[index],games[index]);
+	return 0;
+}
+int 
+bbcbotplayerdb::getindex(std::string name)
+{
+	if(issorted)
+	{
+		//cout << "[331] looking for player \""<<name<<"\" Size: "<<size<<"\n";
+		// Binary search, yeah
+		int left,right,center,eval;
+		left=0;
+		right=size;
+		for(size_t i=0;i<size;i++)
+		{
+			if(right <= left) break;
+			center=(left+right)/2; // this is always smalller than "right"
+			eval=name.compare(pname[center]);
+			if(eval==0) return center;
+			if(eval<0) right=center;
+			if(eval>0) left=center+1;
+		}
+	}
+	else
+	{
+		cout << "[332] looking for player \""<<name<<"\"\n";
+		for(size_t i=0;i<size;i++)
+		{
+			if(name==pname[i]) return i;
+		}
+	}
+	return -1; // ERROR: not found
+}
+
+void
+bbcbotplayerdb::addidleplayer(unsigned pid)
+{
+	unsigned i=pid&511;
+	const unsigned end=i;
+	while(1)
+	{
+		if(idleplayers[i]==0)
+		{
+			idleplayers[i]=pid;
+			i++;
+			break;
+		}
+		i++;
+		if(i==512) i=0;
+		if(i==end) break;
+	}
+	if(i==end) 
+	{
+		cout << "[310] ERROR: idle player list is full\n";
+		idleplayers[i]=pid;
+	}
+	//else cout <<"[316] Player joined list: "<<pid<<"\n";
+}
+
+void bbcbotplayerdb::removeidleplayer(unsigned pid)
+{
+	unsigned i=pid&511;
+	const unsigned end=i;
+	while(1)
+	{
+		if(idleplayers[i]==pid)
+		{
+			idleplayers[i]=0;
+			i++;
+			break;
+		}
+		i++;
+		if(i==512) i=0;
+		if(i==end) break;
+	}
+	/*if(i==end) 
+	{
+		//cout << "[311] ERROR: removed player not found: ";
+		//cout <<pid<<", "<<idleplayers[i]<<"\n";
+	}
+	//else cout <<"[316] Player removed from list: "<<pid<<"\n";*/
+	if(i>end && debuglongestsearch<i-end) debuglongestsearch=i-end;
+	if(i<end && debuglongestsearch<512+i-end) debuglongestsearch=512+i-end;
+	
+}
+
+void bbcbotplayerdb::printidledebug()
+{
+	cout << "[312] longest search for removal: "<<debuglongestsearch<<"\n";
+	for(int i=0;i<512;i++)
+	{
+		if(idleplayers[i]==0) continue;
+		if(parent->GetGameIdOfPlayer(idleplayers[i])) continue;
+		if(parent->GetPlayerName(idleplayers[i]).substr(0,5)=="Guest") continue;
+		cout << "[313] idle player ["<<i<<"] : "<<parent->GetPlayerName(idleplayers[i])<<"\n";
+	}
+}
+
 GameData bot_readgamesettings(string filename)
 {
 	/*
@@ -995,6 +1293,9 @@ ClientThread::bot_every10min()
 void 
 ClientThread::bot_loadfiles()
 {
+	botdb.clear();
+	botdb.loadfile("botfiles/minidb.txt");
+	
 	// delete old data:
 	bot.pgroups.clear();
 	bot.gdata.clear();
@@ -1109,12 +1410,6 @@ ClientThread::bot_leave()
 }
 
 void 
-
-
-
-
-
-
 ClientThread::bbcbotTimerCallback(const boost::system::error_code& ec)
 {
 	if(!ec)
@@ -1144,6 +1439,8 @@ ClientThread::bbcbotTimerCallback(const boost::system::error_code& ec)
 			&ClientThread::bbcbotTimerCallback, shared_from_this(), boost::asio::placeholders::error));
 	}
 }
+
+
 
 // bbcbot code end
 

@@ -43,6 +43,7 @@
 #include <qttoolsinterface.h>
 
 #include <time.h> // bbcbot code
+#include <ctime> // bbcbot code
 
 #include <game.h>
 #include <playerinterface.h>
@@ -188,23 +189,24 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
 	std::string pname=pi1.playerName;
 	time_t now=time(NULL);
-	std::cout << "[002] <Time="<< now<<">Private Message from "<<pname<<": "<<netMessage.chattext()<<"|\n"; 
+	string chattext=netMessage.chattext();
+	std::cout << "[002] <Time="<< now<<">Private Message from "<<pname<<": "<<chattext<<"|\n"; 
 	
 	// start new create code
-	if(ciscompare(netMessage.chattext().substr(0,7),"create "))
+	if(ciscompare(chattext.substr(0,7),"create "))
 	{
 		std::cout << "[171] new create command 1\n";
 		bool syntaxerror=false,notfounderror=false,nopermissionerror=false;
 		bool er1=false,busyerror=false;
 		bbcbotgamedata*gd2=NULL;
 		bbcbotpermissiongroup*perm=NULL;
-		size_t secondspacepos=netMessage.chattext().find(" ",7);
+		size_t secondspacepos=chattext.find(" ",7);
 		string secondword="",customname="";
 		string gname="";
 		if(secondspacepos==string::npos || secondspacepos<8) er1=syntaxerror=true;
-		else secondword=netMessage.chattext().substr(7,secondspacepos-7);
-		//if(netMessage.chattext().legnth<secondspacepos+1
-		if(!syntaxerror) customname=netMessage.chattext().substr(secondspacepos+1); // TODO: test if throws exception if not proper substr
+		else secondword=chattext.substr(7,secondspacepos-7);
+		//if(chattext.legnth<secondspacepos+1
+		if(!syntaxerror) customname=chattext.substr(secondspacepos+1); // TODO: test if throws exception if not proper substr
 		for(list<bbcbotgamedata>::iterator iter=client->bot.gdata.begin();iter!=client->bot.gdata.end();iter++)
 		{
 			if(ciscompare(iter->commandname,secondword))
@@ -246,22 +248,51 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		}
 	}
 	// end new create code
-	else if(netMessage.chattext()=="debug")
+	else if(chattext=="debug")
 	{
-		string testmsg="";
-		for(int i=0;i<194;i++)
-		{
-			testmsg+=int2string(i)+" ";
-		}
-		bot_sendlongpm(client,pid,testmsg);
-		
+		client->botdb.printidledebug();
 	}
-	else if(netMessage.chattext()=="uptime")
+	else if(chattext.substr(0,7)=="rating " && chattext.length()>7)
+	{
+		string playername=chattext.substr(7);
+		bot_sendlongpm(client,pid,client->botdb.printrating(playername));
+	}
+	else if(chattext.substr(0,8)=="tickets " && chattext.length()>8)
+	{
+		string playername=chattext.substr(8);
+		bot_sendlongpm(client,pid,client->botdb.printtickets(playername));
+	}
+	else if(chattext.substr(0,6)=="games " && chattext.length()>6)
+	{
+		string playername=chattext.substr(6);
+		bot_sendlongpm(client,pid,client->botdb.printgamescount(playername));
+	}
+	else if(chattext.substr(0,7)=="suggest")
+	{
+		if(chattext=="suggest1" || chattext=="suggest step1" || chattext=="suggest s1")
+		{
+			bot_sendlongpm(client,pid,client->botdb.printsuggest(1));
+		}
+		else if(chattext=="suggest2" || chattext=="suggest step2" || chattext=="suggest s2")
+		{
+			bot_sendlongpm(client,pid,client->botdb.printsuggest(2));
+		}
+		else if(chattext=="suggest3" || chattext=="suggest step3" || chattext=="suggest s3")
+		{
+			bot_sendlongpm(client,pid,client->botdb.printsuggest(3));
+		}
+		else if(chattext=="suggest4" || chattext=="suggest step4" || chattext=="suggest s4")
+		{
+			bot_sendlongpm(client,pid,client->botdb.printsuggest(4));
+		}
+		else client->SendPrivateChatMessage(pid,"sorry, i didnt understand your suggest command, try \"suggest s1\"");
+	}
+	else if(chattext=="uptime")
 	{
 		std::string number=int2string(client->bot.stdcount);
 		client->SendPrivateChatMessage(pid,"Uptime: "+number+" seconds (no precise time measurement, sry)");
 	}
-	else if(netMessage.chattext()=="update")
+	else if(chattext=="update")
 	{
 		// yeah, we are still able to get data !
 		ofstream connectionfile;
@@ -271,9 +302,20 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		connectionfile.close();
 		client->bot_loadfiles();
 	}
+	else if(chattext=="time")
+	{
+		struct tm * timeinfo;
+		char buffer[80];
+		timeinfo = localtime(&now);
+		strftime(buffer,80,"%Y-%m-%d %I:%M:%S [%A] [Timezone: %Z] ",timeinfo);
+		std::string str(buffer);
+		client->SendPrivateChatMessage(pid,str);
+		
+		
+	}
 	else if(pname!="bbcbot" && pname!="bbcbot2")
 	{
-		bot_sendlongpm(client,pid,bot_fixedcommandssearch(client,netMessage.chattext()));
+		bot_sendlongpm(client,pid,bot_fixedcommandssearch(client,chattext));
 	}
 	return;
 }
@@ -956,8 +998,12 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 		const PlayerListMessage &netPlayerList = tmpPacket->GetMsg()->playerlistmessage();
 
 		if (netPlayerList.playerlistnotification() == PlayerListMessage::playerListNew) {
+			//std::cout << "[007] PlayerListMessage::playerListNew\n";
+			client->botdb.addidleplayer(netPlayerList.playerid());// bbcbot code
 			client->GetCallback().SignalLobbyPlayerJoined(netPlayerList.playerid(), client->GetPlayerName(netPlayerList.playerid()));
 		} else if (netPlayerList.playerlistnotification() == PlayerListMessage::playerListLeft) {
+			//std::cout << "[008] PlayerListMessage::playerListLeft\n";
+			client->botdb.removeidleplayer(netPlayerList.playerid()); // bbcbot code
 			client->GetCallback().SignalLobbyPlayerLeft(netPlayerList.playerid());
 		}
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_GameListNewMessage) {
@@ -1010,6 +1056,7 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 
 		
 		bot_playerjoin(client,netListJoined); // bbcbot code
+		//client->botdb.removeidleplayer(netListJoined.playerid()); // bbcbot code
 		
 		client->ModifyGameInfoAddPlayer(netListJoined.gameid(), netListJoined.playerid());
 		// Request player info if needed.
@@ -1022,6 +1069,7 @@ AbstractClientStateReceiving::HandlePacket(boost::shared_ptr<ClientThread> clien
 		
 		
 		bot_playerleft(client,netListLeft); // bbcbot code
+		//client->botdb.addidleplayer(netListLeft.playerid()); // bbcbot code
 		
 		
 		client->ModifyGameInfoRemovePlayer(netListLeft.gameid(), netListLeft.playerid());
@@ -1978,6 +2026,8 @@ ClientStateWaitHand::InternalHandlePacket(boost::shared_ptr<ClientThread> client
 		client->GetCallback().SignalNetClientPostRiverShowCards(r.playerid());
 		client->GetClientLog()->logHoleCardsHandName(client->GetGame()->getActivePlayerList(), tmpPlayer, true);
 	} else if (tmpPacket->GetMsg()->messagetype() == PokerTHMessage::Type_PlayerIdChangedMessage) {
+		cout << "[315] Playerid changed\n";
+		
 		boost::shared_ptr<Game> curGame = client->GetGame();
 		if (curGame) {
 			// Perform Id change.
