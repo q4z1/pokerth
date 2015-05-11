@@ -14,7 +14,7 @@ GOAL 2 : done
 Create different type of games (step1-step4, monthly cup, heads-up) on command, load type of games and game settings from bbc website, only allow bbc admins to create games (depending on type).
 
 
-GOAL 3
+GOAL 3 : done
 ------
 
 [possible before goal 2]

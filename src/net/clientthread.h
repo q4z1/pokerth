@@ -72,7 +72,7 @@ public:
 	void clear();
 	bool loadfile(std::string filename);
 	std::string printsuggest(int step);
-	std::string printsuggest(int step,int limit);
+	std::string printsuggest(int step,unsigned limit);
 	std::string printtickets(std::string name);
 	std::string printrating(std::string name);
 	std::string printgamescount(std::string name);

@@ -978,10 +978,10 @@ std::string bbcbotplayerdb::int2string(int a)
 
 std::string bbcbotplayerdb::printsuggest(int step)
 {
-	// default limit is 8
-	return printsuggest(step,8);
+	// default limit is 12
+	return printsuggest(step,12);
 }
-std::string bbcbotplayerdb::printsuggest(int step,int limit)
+std::string bbcbotplayerdb::printsuggest(int step,unsigned limit)
 {
 	vector<int> sindex;
 	vector<int> sscore;
@@ -1023,7 +1023,7 @@ std::string bbcbotplayerdb::printsuggest(int step,int limit)
 	}
 	if(sindex.size()==0) return "Sorry, no player found to suggest";
 	tempname="I suggest the following players for step "+int2string(step)+": ";
-	for(int i=0;i<sindex.size() && i<limit; i++)
+	for(unsigned i=0;i<sindex.size() && i<limit; i++)
 	{
 		if(i!=0) tempname+=", ";
 		tempname+=pname[sindex[i]];

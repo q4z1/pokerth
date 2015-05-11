@@ -2,9 +2,6 @@
 
 TODOLIST for bbcbot - order by priority
 
-- write script that kills the process of bbcbot and restarts, if offline (no entry in lastconnection.txt from bbcbot for >12 minutes)
-- move to goal 4
-
 
 RESULTS (constraints for bbcbot)
 

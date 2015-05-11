@@ -172,6 +172,7 @@ void bot_rejectinv(boost::shared_ptr<ClientThread> client,const RejectInvNotifyM
 	if(netRejNotify.playerid()!=client->bot.creatorid) return;
 	client->SendLeaveCurrentGame();
 	cout <<"[015] Leave game because of invitation denied\n";
+	client->bot.creategamestate=GS_NORMAL;
 	return;
 }
 
@@ -307,7 +308,14 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		struct tm * timeinfo;
 		char buffer[80];
 		timeinfo = localtime(&now);
-		strftime(buffer,80,"%Y-%m-%d %I:%M:%S [%A] [Timezone: %Z] ",timeinfo);
+		const int weekday=timeinfo->tm_wday;
+		if(weekday==0) strftime(buffer,80,"%Y-%m-%d %H:%M:%S [sunday] [Timezone: %Z] ",timeinfo);
+		if(weekday==1) strftime(buffer,80,"%Y-%m-%d %H:%M:%S [monday] [Timezone: %Z] ",timeinfo);
+		if(weekday==2) strftime(buffer,80,"%Y-%m-%d %H:%M:%S [tuesday] [Timezone: %Z] ",timeinfo);
+		if(weekday==3) strftime(buffer,80,"%Y-%m-%d %H:%M:%S [wednesday] [Timezone: %Z] ",timeinfo);
+		if(weekday==4) strftime(buffer,80,"%Y-%m-%d %H:%M:%S [thursday] [Timezone: %Z] ",timeinfo);
+		if(weekday==5) strftime(buffer,80,"%Y-%m-%d %H:%M:%S [friday] [Timezone: %Z] ",timeinfo);
+		if(weekday==6) strftime(buffer,80,"%Y-%m-%d %H:%M:%S [saturday] [Timezone: %Z] ",timeinfo);
 		std::string str(buffer);
 		client->SendPrivateChatMessage(pid,str);
 		
