@@ -47,6 +47,8 @@
 #include <playerdata.h>
 #include <gamedata.h>
 
+#include <time.h> // bbcbot code
+
 class ClientThread;
 class ClientContext;
 class ClientState;
@@ -124,8 +126,30 @@ enum bbcbotgamestate
 	GS_GOTCOMMAND,
 	GS_CREATED,
 	GS_SENDINV,
-	GS_ACCEPTED // creator accepted registration
-}; // forgames created by PM
+	GS_ACCEPTED, // creator accepted registration
+	// for games created by PM, during creation process
+	GS_NO=0x100, // game doesnt exist
+	GS_OPEN,
+	GS_RUNNING,
+	GS_FINISHED
+	// also for games that are created without bbcbot
+}; 
+
+struct bbcbotwatchgame
+{
+	bbcbotwatchgame() : gamestate(GS_NO) {}
+	std::string gamename;
+	std::string openedby;
+	std::string players[11]; //names of players
+	unsigned gameid;
+	time_t starttime;
+	time_t createtime;
+	time_t endtime;
+	bool usedbbcbot;
+	int countdownafterfinish;
+	bbcbotgamestate gamestate;
+};
+
 
 
 struct bbcbotdata
@@ -139,8 +163,10 @@ struct bbcbotdata
 	int countdowninvitetimeout; // timer
 	int countdownleave; // timer
 	int stdcount;
+	
 	std::list<bbcbotpermissiongroup> pgroups;
 	std::list<bbcbotgamedata> gdata;
+	std::list<bbcbotwatchgame> wgame;
 	std::vector<std::string> fixedcommands;
 	std::vector<std::string> fixedreply;
 };

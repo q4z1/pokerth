@@ -465,8 +465,15 @@ void startWindowImpl::callInternetGameLoginDialog()
 	/*if(myInternetGameLoginDialog->result() == QDialog::Accepted) {*/
 		//send login infos
 		std::cout << "[253] startWindowImpl::callInternetGameLoginDialog() before mySession->setLogin()\n";
+		// read file for account name
+		std::string accountname;
+
+		ifstream accountnamefile("accountname.txt");
+		if(!getline(accountnamefile,accountname)) accountname="bbcbot";
+
+
 		mySession->setLogin(
-			/*myConfig->readConfigString("MyName")*/"bbcbot", // or bbcbot2 
+			/*myConfig->readConfigString("MyName")*/ accountname, // or "bbcbot"
 			/*myInternetGameLoginDialog->lineEdit_password->text().toUtf8().constData()*/ mySession->bbcbotpassword,
 			/*myInternetGameLoginDialog->checkBox_guest->isChecked()*/false);
 	/*} else {

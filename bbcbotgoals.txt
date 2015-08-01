@@ -23,13 +23,13 @@ prevent disconnect due to inactivity
 Reject any Invitation for BBC BOT 
 [so bbcbot can run 24-7]
 
-GOAL 4
+GOAL 4 : done
 ------
 
 implement "ticket" command - it prints the tickets of a player
 similar, implement a "rating" command
 make a help command that points to a webpage
-
+"suggest step x" - suggest a player (among idle) to join the game
 
 GOAL 5
 ------
@@ -38,10 +38,12 @@ implement more commands/features:
 [these are only ideas]
 "joke" to tell a joke in lobby - like "fortune" for linux (make sure no caps and no offensive jokes)
 "admins" - list admins and/or avaliable admins
-"suggest step x" - suggest a player (among idle) to join the game
 auto-greeting function of important bbc members
 "king" (or "queen") - tells us the current step 4 winner
+"tip" - print a poker tip (maybe one per day)
 [some of these could increase the popularity of bbcbot among non-admins]
+public "good luck" wishes to official games
+"official" command
 
 
 GOAL 6
@@ -66,7 +68,6 @@ GOAL 9
 
 help bbc admins with inviting based on bbc website
 write warnings if bbc rules (e.g. tickets) are about to be violated
-
 
 
 

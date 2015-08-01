@@ -42,7 +42,7 @@
 #include <core/crypthelper.h>
 #include <qttoolsinterface.h>
 
-#include <time.h> // bbcbot code
+
 #include <ctime> // bbcbot code
 
 #include <game.h>
@@ -190,9 +190,11 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	PlayerInfo pi1=client->GetPlayerInfo(pid);
 	std::string pname=pi1.playerName;
 	time_t now=time(NULL);
+	char buffer[80];
+	struct tm * timeinfo;
+	timeinfo = localtime(&now);
 	string chattext=netMessage.chattext();
 	std::cout << "[002] <Time="<< now<<">Private Message from "<<pname<<": "<<chattext<<"|\n"; 
-	
 	// start new create code
 	if(ciscompare(chattext.substr(0,7),"create "))
 	{
@@ -305,9 +307,6 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	}
 	else if(chattext=="time")
 	{
-		struct tm * timeinfo;
-		char buffer[80];
-		timeinfo = localtime(&now);
 		const int weekday=timeinfo->tm_wday;
 		if(weekday==0) strftime(buffer,80,"%Y-%m-%d %H:%M:%S [sunday] [Timezone: %Z] ",timeinfo);
 		if(weekday==1) strftime(buffer,80,"%Y-%m-%d %H:%M:%S [monday] [Timezone: %Z] ",timeinfo);
@@ -318,10 +317,9 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		if(weekday==6) strftime(buffer,80,"%Y-%m-%d %H:%M:%S [saturday] [Timezone: %Z] ",timeinfo);
 		std::string str(buffer);
 		client->SendPrivateChatMessage(pid,str);
-		
-		
 	}
-	else if(pname!="bbcbot" && pname!="bbcbot2")
+	else if(chattext.substr(0,6)=="ERROR:") return;
+	else
 	{
 		bot_sendlongpm(client,pid,bot_fixedcommandssearch(client,chattext));
 	}
@@ -331,6 +329,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 void bot_newgame(boost::shared_ptr<ClientThread> client,const GameListNewMessage &netListNew)
 {
 	unsigned adminpid=netListNew.adminplayerid();
+	
 	if(adminpid==client->GetGuiPlayerId() && client->bot.creategamestate==GS_GOTCOMMAND)
 	{
 		
@@ -338,6 +337,16 @@ void bot_newgame(boost::shared_ptr<ClientThread> client,const GameListNewMessage
 		client->bot.creategamestate=GS_CREATED;
 		client->bot.countdowninvite=3;
 		client->bot.countdowninvitetimeout=30;
+	}
+	else if(netListNew.gameinfo().netgametype()==3 && netListNew.gamemode()==1) // if invite-only, created, 
+	{
+		// BBC created by another person :(
+		string name=netListNew.gameinfo().gamename();
+		if(name.substr(0,3)=="BBC")
+		{
+			string pname=client->GetPlayerName(adminpid);
+			cout << "[017] BBC game created without bbcbot: playername="<<pname<<", gamename="<<name<<"\n";
+		}
 	}
 	return;
 }
