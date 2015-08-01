@@ -812,9 +812,13 @@ void startWindowImpl::networkError(int errorID, int /*osErrorID*/)
 	break;
 	case ERR_SOCK_RECV_FAILED: // Sometimes windows reports recv failed on close.
 	case ERR_SOCK_CONN_RESET: {
+		/*
 		MyMessageBox::warning(this, tr("Network Error"),
 							  tr("The connection to the server was lost."),
 							  QMessageBox::Close);
+		*/ 
+		std::cout << "[325] message box error: the connection to the server was lost.\n";
+		
 	}
 	break;
 	case ERR_SOCK_CONN_EXISTS: {
