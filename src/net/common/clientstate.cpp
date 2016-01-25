@@ -290,8 +290,8 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		}
 		else if(chattext=="suggestwec" || chattext=="suggest wec")
 		{
-			//bot_sendlongpm(client,pid,client->botdb.printsuggest(4));
-			client->SendPrivateChatMessage(pid,"suggestion for available wec players is not yet implemented.");
+			bot_sendlongpm(client,pid,client->botdb.wecsuggest());
+			//client->SendPrivateChatMessage(pid,"suggestion for available wec players is not yet implemented.");
 		}
 		else client->SendPrivateChatMessage(pid,"sorry, i didnt understand your suggest command, try \"suggest s1\"");
 	}

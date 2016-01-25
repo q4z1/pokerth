@@ -965,6 +965,17 @@ bool bbcbotplayerdb::loadfile(std::string filename)
 	return checkcontent();
 }
 
+bool bbcbotplayerdb::loadwecfile(std::string filename)
+{
+	ifstream wecfile(filename.c_str());// filename="botfiles/weclist.txt" maybe
+	string line;
+	while(getline(wecfile,line))
+	{
+		wecpeople.push_back(line);
+	}
+	return true;
+}
+
 
 std::string bbcbotplayerdb::int2string(int a)
 {
@@ -1030,6 +1041,68 @@ std::string bbcbotplayerdb::printsuggest(int step,unsigned limit)
 	}
 	return tempname;
 }
+
+std::string bbcbotplayerdb::wecsuggest()
+{
+	unsigned limit=10;
+	vector<int> sindex;
+	vector<int> sscore;
+	
+	string tempname="";
+	int tempindex=-1;
+	int tempscore=0;
+	vector<int>::iterator it1,it2,it3;
+	for(int i=0;i<512;i++)
+	{
+		if(idleplayers[i]==0) continue;
+		if(parent->GetGameIdOfPlayer(idleplayers[i])) continue;
+		tempname=parent->GetPlayerName(idleplayers[i]);
+		if(tempname.substr(0,5)=="Guest") continue;
+		tempindex=getindex(tempname);
+		tempindex=-1;
+		for(unsigned i2=0;i2<wecpeople.size();i2++)
+		{
+			if(tempname==wecpeople[i2])
+			{
+				tempindex=i2;
+				break;
+			}
+		}
+		if(tempindex==-1) continue;
+// 		tempscore=suggestionscore1(tempindex,step);
+		tempscore=(rand()&0xefbd)|0x42;
+		//cout << "[318] checking player "<<tempname<<"with suggestscore
+		if(tempscore<=10) continue;
+		it1=sindex.begin();
+		it2=sindex.end();
+		it3=sscore.begin();
+		while(it1!=it2)
+		{
+			if(tempscore >= *it3) 
+			{
+				sindex.insert(it1,tempindex);
+				sscore.insert(it3,tempscore);
+				break;
+			}
+			it1++;
+			it3++;
+		}
+		if(it1==it2)
+		{
+			sindex.push_back(tempindex);
+			sscore.push_back(tempscore);
+		}
+	}
+	if(sindex.size()==0) return "Sorry, no wec player found to suggest";
+	tempname="I suggest the following players for wec: ";
+	for(unsigned i=0;i<sindex.size() && i<limit; i++)
+	{
+		if(i!=0) tempname+=", ";
+		tempname+=pname[sindex[i]];
+	}
+	return tempname;
+}
+
 
 std::string bbcbotplayerdb::printtickets(std::string name)
 {
@@ -1295,6 +1368,7 @@ ClientThread::bot_loadfiles()
 {
 	botdb.clear();
 	botdb.loadfile("botfiles/minidb.txt");
+	botdb.loadwecfile("botfiles/weclist.txt");
 	
 	// delete old data:
 	bot.pgroups.clear();

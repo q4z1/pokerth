@@ -81,12 +81,11 @@ public:
 	void removeidleplayer(unsigned pid);
 	void addidleplayer(unsigned pid);
 	void printidledebug();
-	/* WEC suggest TODO
+// 	 WEC suggest TODO
 	bool loadwecfile(std::string filename); //reading into wecpeople
 	// remember to call loadwecfile from bot_loadfiles() 
 	std::string wecsuggest(); // comparing idleplayers and wecpeople
 		// this function should be very similar to printsuggest()
-	*/
 private:
 	ClientThread*parent;
 	bool issorted;
@@ -101,9 +100,9 @@ private:
 	std::vector<int> rating;
 	unsigned*idleplayers; // list
 	unsigned debuglongestsearch;
-	/* WEC suggest TODO
+// 	 WEC suggest TODO
 	std::vector<std::string> wecpeople; // storing list of wec players
-	*/
+
 	int suggestionscore2(int rating,int tickets,int games);
 	int suggestionscore1(int index,int step);
 	int getindex(std::string name); // -1 means not found
