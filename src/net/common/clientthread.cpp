@@ -1060,8 +1060,10 @@ std::string bbcbotplayerdb::wecsuggest()
 		if(tempname.substr(0,5)=="Guest") continue;
 		tempindex=getindex(tempname);
 		tempindex=-1;
+		//std::cout << "tempname=" << tempname << "\n";
 		for(unsigned i2=0;i2<wecpeople.size();i2++)
 		{
+			//std::cout << "wecpeople=" << wecpeople[i2] << "\n";
 			if(tempname==wecpeople[i2])
 			{
 				tempindex=i2;
@@ -1098,7 +1100,8 @@ std::string bbcbotplayerdb::wecsuggest()
 	for(unsigned i=0;i<sindex.size() && i<limit; i++)
 	{
 		if(i!=0) tempname+=", ";
-		tempname+=pname[sindex[i]];
+		//tempname+=pname[sindex[i]];
+		tempname += wecpeople[sindex[i]];
 	}
 	return tempname;
 }
