@@ -193,8 +193,10 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	char buffer[80];
 	struct tm * timeinfo;
 	timeinfo = localtime(&now);
+  char *atime = asctime(timeinfo);
+  atime[24] = '\0';
 	string chattext=netMessage.chattext();
-	std::cout << "[002] <Time="<< now<<">Private Message from "<<pname<<": "<<chattext<<"|\n"; 
+	std::cout << "[002] <"<<atime<<">Private Message from "<<pname<<": "<<chattext<<"|\n"; 
 	// start new create code
 	if(ciscompare(chattext.substr(0,7),"create "))
 	{
