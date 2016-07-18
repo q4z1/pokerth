@@ -226,9 +226,9 @@ protected:
 	u_int32_t GetRejoinGameIdForPlayer(const std::string &playerName, const std::string &guid, unsigned &outPlayerUniqueId);
 
 	// LG: Handle guests_ counter. NOTE: These functions in production could be removed and access directly to guest_
-	void IncrementGuests();
-	void DecrementGuests();
-	int getGuests();
+//	void IncrementGuests();
+//	void DecrementGuests();
+//	int getGuests();
 
 private:
 
@@ -283,7 +283,7 @@ private:
 	const boost::posix_time::ptime m_startTime;
 
 	// LG: guest_ is thread safe, even if ServerLobbyThread pointer is shared accross the code, as long as it is ONLY ONE running instance
-	boost::atomic<int> guests_;
+//	boost::atomic<int> guests_;
 
 	friend class InternalServerCallback;
 };

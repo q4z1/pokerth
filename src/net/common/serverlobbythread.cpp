@@ -397,10 +397,10 @@ ServerLobbyThread::CloseSession(boost::shared_ptr<SessionData> session)
 		m_gameSessionManager.RemoveSession(session->GetId());
 
 		if (session->GetPlayerData()) {
-			if (session->GetPlayerData()->GetRights() == PLAYER_RIGHTS_GUEST) {
-				DecrementGuests();
-			}
-			NotifyPlayerLeftLobby(session->GetPlayerData()->GetUniqueId());
+//			if (session->GetPlayerData()->GetRights() == PLAYER_RIGHTS_GUEST) {
+//				DecrementGuests();
+//			}
+//			NotifyPlayerLeftLobby(session->GetPlayerData()->GetUniqueId());
 		}
 		// Update stats (if needed).
 		UpdateStatisticsNumberOfPlayers();
@@ -1075,7 +1075,7 @@ ServerLobbyThread::HandleNetPacketInit(boost::shared_ptr<SessionData> session, c
 			return;
 		}
 		// LG: If user is guest, and SERVER_MAX_GUEST_USERS reached, don't allow connection.
-		else if (getGuests() > SERVER_MAX_GUEST_USERS) {
+		else if (m_sessionManager.GetGuests() + m_gameSessionManager.GetGuests() > SERVER_MAX_GUEST_USERS) {
 			SessionError(session, ERR_NET_SERVER_FULL);
 			return;
 		}
@@ -1755,9 +1755,9 @@ ServerLobbyThread::EstablishSession(boost::shared_ptr<SessionData> session)
 	session->SetState(SessionData::Established);
 
 	// LG: Increment guests
-	if (session->GetPlayerData()->GetRights() == PLAYER_RIGHTS_GUEST) {
-		IncrementGuests();
-	}
+//	if (session->GetPlayerData()->GetRights() == PLAYER_RIGHTS_GUEST) {
+//		IncrementGuests();
+//	}
 
 	{
 		boost::mutex::scoped_lock lock(m_statMutex);
@@ -2390,14 +2390,14 @@ ServerLobbyThread::GetRejoinGameIdForPlayer(const std::string &playerName, const
 }
 
 // LG: Handle guests_ variable. Remove in production to access variable itself
-void ServerLobbyThread::DecrementGuests() {
-	this->guests_.fetch_sub(1);
-}
+//void ServerLobbyThread::DecrementGuests() {
+//	this->guests_.fetch_sub(1);
+//}
 
-void ServerLobbyThread::IncrementGuests() {
-	this->guests_.fetch_add(1);
-}
+//void ServerLobbyThread::IncrementGuests() {
+//	this->guests_.fetch_add(1);
+//}
 
-int ServerLobbyThread::getGuests() {
-	return this->guests_;
-}
+//int ServerLobbyThread::getGuests() {
+//	return this->guests_;
+//}
