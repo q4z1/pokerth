@@ -426,7 +426,7 @@ public abstract class TestBase {
 	 *  This test must be modified to adapt to:  
 	 *   - Java8 (much simple threads) Runnable name = () -> {code}  
 	 *   - Modern concurrency design: using Executors, Barriers and CountDownLatch 
-	 * 
+	 *   - Test a guarantee exception when limit is reached. 
 	 * 
 	 * @author albmed
 	 * 
@@ -437,33 +437,60 @@ public abstract class TestBase {
 		
 		String serverType = System.getProperty("pthserver.type");
 		String serverPasswd = System.getProperty("pthserver.passwd"); 
-		String numThreads = System.getProperty("pthserver.numthreads"); 
+		String numThreadsStr = System.getProperty("pthserver.numthreads"); 
+		String sleepForStr = System.getProperty("pthserver.waitfor"); 
 		
-		// if serverType not provided, suppose official server 
+		// if serverType not provided or wrong, suppose official server 
 		if (serverType == null || !serverType.matches("[OoSs]")) {
 			serverType = "O";
 			serverPasswd = "";
 		}
 		
+		// if dedicated server passwd is mandatory
 		if (serverType.equalsIgnoreCase("S") && (serverPasswd == null || serverPasswd.trim().length() == 0))
 			fail("Server Passwd needed on Dedicated server");
 
 		// if numThreads not provided supposed 5 (must match with SERVER_MAX_GUEST_USERS) 
-		int NUM_THREADS = 5; 
-		if (numThreads != null && numThreads.matches("[0-9]*"))  
-			NUM_THREADS = Integer.valueOf(numThreads).intValue();  
+		int numThreads = 5; 
+		if (numThreadsStr != null && numThreadsStr.matches("[0-9]+"))  
+			numThreads = Integer.valueOf(numThreadsStr).intValue();  
 
-		ThreadGuest[] threads = new ThreadGuest[NUM_THREADS]; 
+		// waits for, at least 1sec, when all threads are alive and waiting
+		// can wait longer if, a one want to do a test with a real client. 
+		// Format is: time[unit], where unit is "m" (milli), "s" (seconds) or "M" (minutes)
+		long sleepFor = 1000L; 
+		if (sleepForStr != null && sleepForStr.matches("([0-9]+)([msM]?)")) {
+			long units = 1L;
+			if ((sleepForStr.charAt(sleepForStr.length() - 1) + "").matches("[msM]")) { 
+				switch (sleepForStr.charAt(sleepForStr.length() - 1)) { 
+				case 'm': units = 1L; break;  // milliseconds
+				case 's': units = 1000L; break; // seconds 
+				case 'M': units = 60L*1000L; break; // minutes
+				default: break; 
+				}
+				sleepForStr = sleepForStr.substring(0, sleepForStr.length() -1); 
+			}
+
+			long tmp = Long.valueOf(sleepForStr).longValue() * units; 
+			if (tmp > sleepFor) sleepFor = tmp;
+		}
+		
+		ThreadGuest[] threads = new ThreadGuest[numThreads]; 
 		
 		for (int i = 0; i < threads.length; i++) {
 			threads[i] = new ThreadGuest("Guest" + String.format("%05d",i), serverType, serverPasswd, new Object()); 
 			threads[i].start(); 
 			
-			Thread.sleep(1500L); // Must wait over a second, before start next thread, to avoid error 133 (ERR_NET_INIT_BLOCKED)  
+			// Must wait over a second, before start next thread, to avoid error 133 (ERR_NET_INIT_BLOCKED)
+			// Don't know why this don't works. I had to disable ServerBruteForceProtection on server config file.
+			// So, this can be reduced to a few milliseconds (better not to comment or remove). 
+			Thread.sleep(1500L);   
 		} 
 		
-		Thread.sleep(1000L);
+		// All threads are running and waiting.
+		Thread.sleep(sleepFor);
 		
+		// Unlock, and let threads die. 
 		for (int i = 0; i < threads.length; i++) { 
 			Object lock = threads[i].getLock(); 
 			synchronized (lock) {
