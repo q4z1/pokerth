@@ -31,12 +31,15 @@
 
 #include <dbofficial/dbidmanager.h>
 
+#include <core/loghelper.h> // debug logging
 
 void
 DBIdManager::AddGameId(unsigned gameId, DB_id databaseId)
 {
 	boost::mutex::scoped_lock lock(m_gameIdMapMutex);
 	m_gameIdMap[gameId] = databaseId;
+	LOG_MSG("XXX: Add gameId = " << gameId << " databaseId = " << databaseId); // debug logging
+	LOG_ERROR("XXX: Add gameId = " << gameId << " databaseId = " << databaseId); // debug logging
 }
 
 void
@@ -44,6 +47,8 @@ DBIdManager::RemoveGameId(unsigned gameId)
 {
 	boost::mutex::scoped_lock lock(m_gameIdMapMutex);
 	m_gameIdMap.erase(gameId);
+	LOG_MSG("XXX: Remove gameId = " << gameId); // debug logging
+	LOG_ERROR("XXX: Remove gameId = " << gameId); // debug logging
 }
 
 DB_id
@@ -56,6 +61,8 @@ DBIdManager::GetGameDBId(unsigned gameId) const
 	if (pos != m_gameIdMap.end()) {
 		retVal = pos->second;
 	}
+	LOG_MSG("XXX: Get gameId " << gameId << " => databaseId = " << retVal); // debug logging
+	LOG_ERROR("XXX: Get gameId " << gameId << " => databaseId = " << retVal); // debug logging
 	return retVal;
 }
 
