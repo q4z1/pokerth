@@ -225,14 +225,17 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		if(gd2==NULL) er1=notfounderror=true;
 		// start permission check
 		bool found=false;
-		for(list<string>::iterator iter=perm->players.begin();iter!=perm->players.end() && !er1;iter++)
-		{
-			if(*iter==pname)
-			{
-				found=true;
-				break;
-			}
-		}
+        if(!er1)
+        {
+	    	for(list<string>::iterator iter=perm->players.begin();iter!=perm->players.end() && !er1;iter++)
+	    	{
+	    		if(*iter==pname)
+	    		{
+	    			found=true;
+	    			break;
+	    		}
+	    	}
+        }
 		if(!er1&&((found &&perm->isblacklist)||(!found&&!perm->isblacklist))) er1=nopermissionerror=true;
 		// end permission check
 		if(!er1 && client->bot.creategamestate!=GS_NORMAL) er1=busyerror=true;
@@ -305,7 +308,7 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 	else if(chattext=="update")
 	{
 		// yeah, we are still able to get data !
-		ofstream connectionfile;
+		std::ofstream connectionfile;
 		connectionfile.open("lastconnection.txt");
 		connectionfile << now;
 		/*int downloaderreturnvalue=*/system("python downloader.py");
@@ -623,8 +626,8 @@ ClientStateReadingServerList::Enter(boost::shared_ptr<ClientThread> client)
 
 		// Unzip the file using zlib.
 		try {
-			ifstream inFile(zippedServerListPath.directory_string().c_str(), ios_base::in | ios_base::binary);
-			ofstream outFile(xmlServerListPath.directory_string().c_str(), ios_base::out | ios_base::trunc);
+			std::ifstream inFile(zippedServerListPath.directory_string().c_str(), ios_base::in | ios_base::binary);
+			std::ofstream outFile(xmlServerListPath.directory_string().c_str(), ios_base::out | ios_base::trunc);
 			boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
 			in.push(boost::iostreams::zlib_decompressor());
 			in.push(inFile);
