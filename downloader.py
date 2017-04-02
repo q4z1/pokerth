@@ -3,7 +3,7 @@
 # python 2.*, not python 3
 
 
-# this is a downloader script for downloading files from bbcpoker.bplaced.net/exp3/bbcbot to botfiles/
+# this is a downloader script for downloading files from bbc.pokerth.net/exp3/bbcbot to botfiles/
 # it is efficient: it only downloads when the file has changed
 
 # TODO: decide if this script should run always or just be called every 5 minutes
@@ -30,7 +30,7 @@ def downloadfile(url,local):
 	return
 
 def checkhash2():
-	response = urllib2.urlopen('http://bbcpoker.bplaced.net/exp3/bbcbot/hash2.txt')
+	response = urllib2.urlopen('http://bbc.pokerth.net/exp3/bbcbot/hash2.txt')
 	data1 = response.read()
 	data2=data1.split("\n")
 	# data3=[x.split(" ",2)[0] for x in data2]
@@ -52,7 +52,7 @@ def checkhash2():
 			pos=data8.index(filename1)
 			if data7[pos]==newhash: isnew=False
 		if isnew:
-			downloadfile('http://bbcpoker.bplaced.net/exp3/bbcbot/'+filename1,"botfiles/"+filename1)
+			downloadfile('http://bbc.pokerth.net/exp3/bbcbot/'+filename1,"botfiles/"+filename1)
 			makeemptyfile('botfiles/'+filename1)
 			newhas=hashlib.md5(open('botfiles/'+filename1, 'r').read()).hexdigest()
 		data9.append(newhash+" "+filename1)
@@ -70,7 +70,7 @@ def checkhash1():
 	# check if folder exists, otherwise create
 	if not os.path.isdir('botfiles'): 
 		os.makedirs('botfiles')
-	response = urllib2.urlopen('http://bbcpoker.bplaced.net/exp3/bbcbot/hash1.php')
+	response = urllib2.urlopen('http://bbc.pokerth.net/exp3/bbcbot/hash1.php')
 	webhash = response.read()
 	makeemptyfile('botfiles/hash1.txt')
 	hash1file=open("botfiles/hash1.txt","r")
