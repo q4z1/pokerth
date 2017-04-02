@@ -12,6 +12,12 @@ import hashlib
 import urllib2
 import os.path
 
+hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+  	    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  	    'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+  	    'Accept-Encoding': 'none',
+  	    'Accept-Language': 'en-US,en;q=0.8',
+  	    'Connection': 'keep-alive'}
 
 def makeemptyfile(fname):
 	if os.path.exists(fname): return
@@ -22,7 +28,8 @@ def makeemptyfile(fname):
 
 def downloadfile(url,local):
 	print "[python] downloading file "+url+"..."
-	response = urllib2.urlopen(url)
+	req = urllib2.Request(url, headers=hdr)
+	response = urllib2.urlopen(req)
 	file1=open(local,"w")
 	file1.write(response.read())
 	file1.close()
@@ -30,7 +37,9 @@ def downloadfile(url,local):
 	return
 
 def checkhash2():
-	response = urllib2.urlopen('http://bbc.pokerth.net/exp3/bbcbot/hash2.txt')
+	req = urllib2.Request('http://bbc.pokerth.net/exp3/bbcbot/hash2.txt', headers=hdr)
+# 	response = urllib2.urlopen('http://bbc.pokerth.net/exp3/bbcbot/hash2.txt')
+	response = urllib2.urlopen(req)
 	data1 = response.read()
 	data2=data1.split("\n")
 	# data3=[x.split(" ",2)[0] for x in data2]
@@ -70,7 +79,10 @@ def checkhash1():
 	# check if folder exists, otherwise create
 	if not os.path.isdir('botfiles'): 
 		os.makedirs('botfiles')
-	response = urllib2.urlopen('http://bbc.pokerth.net/exp3/bbcbot/hash1.php')
+# 	head={'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'}
+# 	req = urllib2.Request('http://www.example.com/random/random.php', headers=hdr)
+	req = urllib2.Request('http://bbc.pokerth.net/exp3/bbcbot/hash1.php', headers=hdr)
+	response = urllib2.urlopen(req)
 	webhash = response.read()
 	makeemptyfile('botfiles/hash1.txt')
 	hash1file=open("botfiles/hash1.txt","r")
@@ -78,6 +90,8 @@ def checkhash1():
 	hash1file.close()
 	if hash1!=webhash : checkhash2()
 	return
+
+checkhash1()
 
 try:
 	checkhash1()
