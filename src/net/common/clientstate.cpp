@@ -311,7 +311,8 @@ void bot_privatemessage(boost::shared_ptr<ClientThread> client,const ChatMessage
 		std::ofstream connectionfile;
 		connectionfile.open("lastconnection.txt");
 		connectionfile << now;
-		/*int downloaderreturnvalue=*/system("python downloader.py");
+		/*int downloaderreturnvalue=system("python downloader.py"); */
+		/*int downloaderreturnvalue=*/system("bash update.sh");
 		connectionfile.close();
 		client->bot_loadfiles();
 	}
