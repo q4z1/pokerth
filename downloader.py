@@ -29,7 +29,7 @@ def makeemptyfile(fname):
 def downloadfile(url,local):
 	print "[python] downloading file "+url+"..."
 	req = urllib2.Request(url, headers=hdr)
-	response = urllib2.urlopen(req)
+	response = urllib2.urlopen(req,timeout=5)
 	file1=open(local,"w")
 	file1.write(response.read())
 	file1.close()
@@ -39,7 +39,7 @@ def downloadfile(url,local):
 def checkhash2():
 	req = urllib2.Request('http://bbc.pokerth.net/exp3/bbcbot/hash2.txt', headers=hdr)
 # 	response = urllib2.urlopen('http://bbc.pokerth.net/exp3/bbcbot/hash2.txt')
-	response = urllib2.urlopen(req)
+	response = urllib2.urlopen(req,timeout=5)
 	data1 = response.read()
 	data2=data1.split("\n")
 	# data3=[x.split(" ",2)[0] for x in data2]
@@ -82,7 +82,7 @@ def checkhash1():
 # 	head={'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'}
 # 	req = urllib2.Request('http://www.example.com/random/random.php', headers=hdr)
 	req = urllib2.Request('http://bbc.pokerth.net/exp3/bbcbot/hash1.php', headers=hdr)
-	response = urllib2.urlopen(req)
+	response = urllib2.urlopen(req,timeout=5)
 	webhash = response.read()
 	makeemptyfile('botfiles/hash1.txt')
 	hash1file=open("botfiles/hash1.txt","r")
@@ -91,7 +91,6 @@ def checkhash1():
 	if hash1!=webhash : checkhash2()
 	return
 
-checkhash1()
 
 try:
 	checkhash1()
