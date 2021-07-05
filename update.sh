@@ -11,12 +11,12 @@ curl -O https://bbc.pokerth.net/exp3/bbcbot/wecgfinal_settings.txt
 curl -O https://bbc.pokerth.net/exp3/bbcbot/weclist.old3.txt
 curl -O https://bbc.pokerth.net/exp3/bbcbot/weclist.txt
 curl -O https://bbc.pokerth.net/exp3/bbcbot/bbcup_settings.txt
-curl -O https://bbc.pokerth.net/exp3/bbcbot/ hash2.txt
+curl -O https://bbc.pokerth.net/exp3/bbcbot/hash2.txt
 curl -O https://bbc.pokerth.net/exp3/bbcbot/manual_fixedcommands.txt
 curl -O https://bbc.pokerth.net/exp3/bbcbot/mcup_settings.txt
-curl -O https://bbc.pokerth.net/exp3/bbcbot/ permissions.txt
-curl -O https://bbc.pokerth.net/exp3/bbcbot/ step3_settings.txt
-curl -O https://bbc.pokerth.net/exp3/bbcbot/ wecmfinal_settings.txt
+curl -O https://bbc.pokerth.net/exp3/bbcbot/permissions.txt
+curl -O https://bbc.pokerth.net/exp3/bbcbot/step3_settings.txt
+curl -O https://bbc.pokerth.net/exp3/bbcbot/wecmfinal_settings.txt
 curl -O https://bbc.pokerth.net/exp3/bbcbot/fixedcommands.txt
 curl -O https://bbc.pokerth.net/exp3/bbcbot/husc_settings.txt
 curl -O https://bbc.pokerth.net/exp3/bbcbot/manual_permissions.txt
